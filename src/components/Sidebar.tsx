@@ -2,23 +2,51 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
-const NAV = [
-  { href: "/home", label: "ໜ້າຫຼັກ", icon: HomeIcon, adminOnly: false },
-  { href: "/products", label: "ຂໍ້ມູນສິນຄ້າ", icon: BoxIcon, adminOnly: false },
-  { href: "/samsung-sn", label: "SN SAMSUNG", icon: BoxIcon, adminOnly: false },
-  { href: "/analytics", label: "ວິເຄາະຂາຍ", icon: ChartIcon, adminOnly: false },
-  { href: "/stock-health", label: "ສຸຂະພາບ Stock", icon: PulseIcon, adminOnly: false },
-  { href: "/abc-analysis", label: "ວິເຄາະ ABC", icon: LayersIcon, adminOnly: false },
-  { href: "/quality", label: "ຄຸນນະພາບຂໍ້ມູນ", icon: CheckIcon, adminOnly: false },
-  { href: "/defects", label: "ຕຳໜິ", icon: AlertIcon, adminOnly: false },
-  { href: "/procurement", label: "ຈັດຊື້", icon: CartIcon, adminOnly: false },
-  { href: "/purchase-plan", label: "ແຜນການສັ່ງຊື້", icon: ClipboardIcon, adminOnly: true },
-  { href: "/kpi", label: "ຜົນງານທີມ", icon: ChartIcon, adminOnly: true },
-  { href: "/staff", label: "ຈັດການພະນັກງານ", icon: UsersIcon, adminOnly: true },
-  { href: "/spare-import", label: "ນຳເຂົ້າອາໄຫຼ່", icon: ImportIcon, adminOnly: true },
-  { href: "/audit", label: "ບັນທຶກກິດຈະກຳ", icon: ClockIcon, adminOnly: true },
+const NAV_GROUPS = [
+  {
+    title: "ພາບລວມ",
+    items: [
+      { href: "/home", label: "ໜ້າຫຼັກ", icon: HomeIcon, adminOnly: false },
+    ],
+  },
+  {
+    title: "ສິນຄ້າ",
+    items: [
+      { href: "/products", label: "ຂໍ້ມູນສິນຄ້າ", icon: BoxIcon, adminOnly: false },
+      { href: "/samsung-sn", label: "SN SAMSUNG", icon: BoxIcon, adminOnly: false },
+      { href: "/quality", label: "ຄຸນນະພາບຂໍ້ມູນ", icon: CheckIcon, adminOnly: false },
+      { href: "/defects", label: "ຕຳໜິ", icon: AlertIcon, adminOnly: false },
+    ],
+  },
+  {
+    title: "ວິເຄາະ",
+    items: [
+      { href: "/analytics", label: "ວິເຄາະຂາຍ", icon: ChartIcon, adminOnly: false },
+      { href: "/stock-health", label: "ສຸຂະພາບ Stock", icon: PulseIcon, adminOnly: false },
+      { href: "/abc-analysis", label: "ວິເຄາະ ABC", icon: LayersIcon, adminOnly: false },
+      { href: "/stock-policy", label: "ນະໂຍບາຍ Stock", icon: ShieldIcon, adminOnly: false },
+    ],
+  },
+  {
+    title: "ຈັດຊື້",
+    items: [
+      { href: "/purchase-order", label: "ອອກໃບສັ່ງຊື້", icon: FileTextIcon, adminOnly: false },
+      { href: "/procurement", label: "ຈັດຊື້", icon: CartIcon, adminOnly: false },
+      { href: "/purchase-plan", label: "ແຜນການສັ່ງຊື້", icon: ClipboardIcon, adminOnly: true },
+      { href: "/purchase-plan/weekly", label: "ແຜນສັ່ງຊື້ລາຍອາທິດ", icon: CalendarIcon, adminOnly: false },
+      { href: "/spare-import", label: "ນຳເຂົ້າອາໄຫຼ່", icon: ImportIcon, adminOnly: true },
+    ],
+  },
+  {
+    title: "ບໍລິຫານ",
+    items: [
+      { href: "/kpi", label: "ຜົນງານທີມ", icon: ChartIcon, adminOnly: true },
+      { href: "/staff", label: "ຈັດການພະນັກງານ", icon: UsersIcon, adminOnly: true },
+      { href: "/audit", label: "ບັນທຶກກິດຈະກຳ", icon: ClockIcon, adminOnly: true },
+    ],
+  },
 ];
 
 function CartIcon({ className }: { className?: string }) {
@@ -64,12 +92,39 @@ function LayersIcon({ className }: { className?: string }) {
   );
 }
 
+function FileTextIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6M9 13h6M9 17h4" />
+    </svg>
+  );
+}
+
 function ClipboardIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="8" y="2" width="8" height="4" rx="1" />
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
       <path d="M9 12h6M9 16h4" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18M8 15h3M8 18h6" />
     </svg>
   );
 }
@@ -87,11 +142,20 @@ function UsersIcon({ className }: { className?: string }) {
 export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const visibleNav = NAV.filter(
-    (item) =>
-      (!item.adminOnly || isAdmin) &&
-      item.label.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  const term = query.trim().toLowerCase();
+  // The active item is the one with the longest href matching the current
+  // path, so /purchase-plan/weekly doesn't also light up /purchase-plan.
+  const activeHref = NAV_GROUPS.flatMap((g) => g.items)
+    .filter((it) => pathname === it.href || pathname.startsWith(`${it.href}/`))
+    .reduce<string | null>((best, it) => (best && best.length >= it.href.length ? best : it.href), null);
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) =>
+        (!item.adminOnly || isAdmin) &&
+        item.label.toLowerCase().includes(term),
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <aside className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-[#050a1a]/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(2,6,23,0.18)] backdrop-blur-xl md:sticky md:top-0 md:h-screen md:w-[244px] md:shrink-0 md:self-start md:flex-col md:border-r md:border-t-0 md:border-[#182036] md:px-0 md:py-0 md:shadow-none">
@@ -111,31 +175,37 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           <span className="text-base" aria-hidden="true">⌕</span>
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ຄົ້ນຫາເມນູ..." className="min-w-0 flex-1 bg-transparent text-xs text-slate-300 outline-none placeholder:text-slate-600" />
         </label>
-        <p className="mb-2 mt-5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">ລະບົບຈັດການ</p>
       </div>
 
-      <nav aria-label="ເມນູຫຼັກ" className="flex w-full gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-y-auto md:px-3">
-        {visibleNav.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`relative flex min-h-11 min-w-[82px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-medium transition md:min-w-0 md:flex-row md:justify-start md:gap-2 md:px-3 md:py-2 md:text-[13px] ${
-                active
-                  ? "bg-teal-500/10 text-teal-300 ring-1 ring-inset ring-teal-400/70"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              {active && <span className="absolute bottom-2 left-0 top-2 hidden w-0.5 rounded-full bg-teal-400 md:block" />}
-              <Icon className="h-[18px] w-[18px]" />
-              {label}
-              {href === "/products" && (
-                <span className="ml-auto hidden rounded-md bg-white/5 px-1.5 py-0.5 text-[9px] text-slate-500 md:inline">ALL</span>
-              )}
-            </Link>
-          );
-        })}
+      <nav aria-label="ເມນູຫຼັກ" className="flex w-full gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-y-auto md:px-3 md:pt-4">
+        {visibleGroups.map((group, groupIndex) => (
+          <Fragment key={group.title}>
+            <p className={`hidden px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 md:block ${groupIndex === 0 ? "mb-1" : "mb-1 mt-3.5"}`}>
+              {group.title}
+            </p>
+            {group.items.map(({ href, label, icon: Icon }) => {
+              const active = href === activeHref;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`relative flex min-h-11 min-w-[82px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium transition md:min-h-0 md:min-w-0 md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2 md:text-[15px] ${
+                    active
+                      ? "bg-teal-500/10 text-teal-300 ring-1 ring-inset ring-teal-400/70"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {active && <span className="absolute bottom-2 left-0 top-2 hidden w-0.5 rounded-full bg-teal-400 md:block" />}
+                  <Icon className="h-5 w-5 md:h-[19px] md:w-[19px]" />
+                  {label}
+                  {href === "/products" && (
+                    <span className="ml-auto hidden rounded-md bg-white/5 px-1.5 py-0.5 text-[9px] text-slate-500 md:inline">ALL</span>
+                  )}
+                </Link>
+              );
+            })}
+          </Fragment>
+        ))}
       </nav>
 
       <div className="mx-4 mb-4 hidden border-t border-[#182036] pt-4 md:block">

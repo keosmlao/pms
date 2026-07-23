@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Select from "react-select";
+import Select from "@/components/ClientSelect";
 
 type Opt = { value: string; label: string };
 

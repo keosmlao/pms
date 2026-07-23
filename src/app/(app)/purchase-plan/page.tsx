@@ -54,7 +54,10 @@ export default async function PurchasePlanPage({
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">ແຜນການສັ່ງຊື້</h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ຈັດກຸ່ມຕາມຜູ້ສະໜອງ · {items.length} ລາຍການ</p>
         </div>
-        <a href={`/api/purchase-plan/export?status=${status}`} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">⬇ ດາວໂຫຼດ CSV</a>
+        <div className="flex gap-2">
+          <Link href="/purchase-plan/weekly" className="rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-500">📅 ແຜນລາຍອາທິດ</Link>
+          <a href={`/api/purchase-plan/export?status=${status}`} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">⬇ ດາວໂຫຼດ CSV</a>
+        </div>
       </div>
 
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -80,7 +83,7 @@ export default async function PurchasePlanPage({
                   <span className="text-xs text-slate-500">{g.rows.length} ລາຍການ · ລວມ {fmt(totalQty)}</span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[820px] text-sm">
+                  <table className="w-full min-w-[820px] text-xs">
                     <thead><tr className="border-b border-slate-200 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800">
                       <th className="px-4 py-2.5 font-semibold">ລະຫັດ</th>
                       <th className="px-4 py-2.5 font-semibold">ຊື່ / ຍີ່ຫໍ້</th>

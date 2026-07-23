@@ -51,7 +51,7 @@ export default async function QualityPage() {
           <p className="px-5 py-10 text-center text-sm text-slate-400">ຂໍ້ມູນຄົບຖ້ວນ 🎉</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-xs">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
                   <th className="px-4 py-2.5 font-semibold">ລະຫັດ</th>

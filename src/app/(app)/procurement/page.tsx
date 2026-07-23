@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getBelowMinStock, getReorderSuggestions, getSupplierSpend } from "@/lib/analytics";
+import { getAboveMaxStock, getBelowMinStock, getReorderSuggestions, getSupplierSpend } from "@/lib/analytics";
 import { getIsAdmin, getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
 import AddToPlanButton from "./AddToPlanButton";
@@ -29,9 +29,10 @@ export default async function ProcurementPage({
   const coverRaw = Number((await searchParams).cover);
   const cover = COVER_OPTIONS.includes(coverRaw) ? coverRaw : 2;
 
-  const [reorder, belowMin, suppliers] = await Promise.all([
+  const [reorder, belowMin, aboveMax, suppliers] = await Promise.all([
     getReorderSuggestions(mineOf, 100),
     getBelowMinStock(mineOf, 100),
+    getAboveMaxStock(mineOf, 100),
     isAdmin ? getSupplierSpend(180, 15) : Promise.resolve([]),
   ]);
 
@@ -47,7 +48,7 @@ export default async function ProcurementPage({
             <h2 className="text-sm font-bold text-red-700 dark:text-red-300">⚠ ຕໍ່າກວ່າ min stock · {belowMin.length}</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="w-full min-w-[560px] text-xs">
               <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40"><th className="px-4 py-2.5 font-semibold">ລະຫັດ</th><th className="px-4 py-2.5 font-semibold">ຊື່ / ຍີ່ຫໍ້</th><th className="px-4 py-2.5 text-right font-semibold">ຄົງເຫຼືອ</th><th className="px-4 py-2.5 text-right font-semibold">Min</th><th className="px-4 py-2.5 text-right font-semibold">ຂາດ</th></tr></thead>
               <tbody>
                 {belowMin.map((b) => (
@@ -57,6 +58,30 @@ export default async function ProcurementPage({
                     <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{fmt(b.balance)}</td>
                     <td className="px-4 py-2 text-right text-slate-500">{fmt(b.min_qty)}</td>
                     <td className="px-4 py-2 text-right font-bold text-red-600 dark:text-red-400">{fmt(b.shortfall)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {aboveMax.length > 0 && (
+        <div className="mt-5 overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm dark:border-amber-900 dark:bg-slate-900">
+          <div className="border-b border-amber-200 bg-amber-50/60 px-5 py-3 dark:border-amber-900 dark:bg-amber-950/30">
+            <h2 className="text-sm font-bold text-amber-700 dark:text-amber-300">⛔ ເກີນ max stock — ຢຸດສັ່ງຊື້ · {aboveMax.length}</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-xs">
+              <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40"><th className="px-4 py-2.5 font-semibold">ລະຫັດ</th><th className="px-4 py-2.5 font-semibold">ຊື່ / ຍີ່ຫໍ້</th><th className="px-4 py-2.5 text-right font-semibold">ຄົງເຫຼືອ</th><th className="px-4 py-2.5 text-right font-semibold">Max</th><th className="px-4 py-2.5 text-right font-semibold">ເກີນ</th></tr></thead>
+              <tbody>
+                {aboveMax.map((a) => (
+                  <tr key={a.code} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                    <td className="px-4 py-2 font-mono text-xs"><Link href={`/products/${encodeURIComponent(a.code)}`} className="font-semibold text-blue-700 hover:underline dark:text-blue-400">{a.code}</Link></td>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200"><span className="block max-w-xs truncate">{a.name}</span><span className="text-[10px] text-slate-400">{a.brand}</span></td>
+                    <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{fmt(a.balance)}</td>
+                    <td className="px-4 py-2 text-right text-slate-500">{fmt(a.max_qty)}</td>
+                    <td className="px-4 py-2 text-right font-bold text-amber-600 dark:text-amber-400">+{fmt(a.excess)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -81,7 +106,7 @@ export default async function ProcurementPage({
         </div>
         {reorder.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີສິນຄ້າໃກ້ໝົດ 👍</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full min-w-[820px] text-xs">
               <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
                 <th className="px-4 py-2.5 font-semibold">ລະຫັດ</th>
                 <th className="px-4 py-2.5 font-semibold">ຊື່ / ຍີ່ຫໍ້</th>
@@ -118,7 +143,7 @@ export default async function ProcurementPage({
         <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ຜູ້ສະໜອງ ຕາມມູນຄ່າຊື້ (180 ວັນ) · {suppliers.length}</h2></div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+            <table className="w-full min-w-[520px] text-xs">
               <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40"><th className="px-4 py-2.5 font-semibold">ຜູ້ສະໜອງ</th><th className="px-4 py-2.5 text-right font-semibold">ໃບຊື້</th><th className="px-4 py-2.5 text-right font-semibold">ມູນຄ່າຊື້</th></tr></thead>
               <tbody>
                 {suppliers.map((s) => (

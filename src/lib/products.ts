@@ -273,12 +273,18 @@ export async function searchSuppliers(q: string, limit = 20): Promise<{ code: st
   return rows;
 }
 
-export async function getMinStock(code: string): Promise<number | null> {
-  const { rows } = await pool.query<{ min_qty: string }>(
-    `SELECT min_qty::text FROM odg_min_stock_setting WHERE item_code = $1`,
+export type StockThresholds = { min: number | null; max: number | null };
+
+export async function getStockThresholds(code: string): Promise<StockThresholds> {
+  const { rows } = await pool.query<{ min_qty: string | null; max_qty: string | null }>(
+    `SELECT min_qty::text, max_qty::text FROM odg_min_stock_setting WHERE item_code = $1`,
     [code],
   );
-  return rows[0] ? Number(rows[0].min_qty) : null;
+  const r = rows[0];
+  return {
+    min: r && r.min_qty != null ? Number(r.min_qty) : null,
+    max: r && r.max_qty != null ? Number(r.max_qty) : null,
+  };
 }
 
 // Admins can manage staff/spare/audit and see all products. Default: IT dept

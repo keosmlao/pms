@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import AsyncSelect from "react-select/async";
+import AsyncSelect from "@/components/ClientAsyncSelect";
 import { addPlanItem, type PlanState } from "./actions";
 
 const initial: PlanState = { error: null, success: null };

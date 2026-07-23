@@ -60,7 +60,7 @@ export default async function StockHealthPage() {
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ສິນຄ້າຄ້າງດົນ (ມູນຄ່າສູງສຸດ) · {dead.length}</h2></div>
         {dead.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີສິນຄ້າຄ້າງດົນ 🎉</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[720px] text-xs">
               <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40"><th className="px-4 py-2.5 font-semibold">ລະຫັດ</th><th className="px-4 py-2.5 font-semibold">ຊື່ / ຍີ່ຫໍ້</th><th className="px-4 py-2.5 text-right font-semibold">ຄົງເຫຼືອ</th><th className="px-4 py-2.5 text-right font-semibold">ມູນຄ່າ</th><th className="px-4 py-2.5 text-right font-semibold">ອາຍຸ (ວັນ)</th><th className="px-4 py-2.5 font-semibold">ຂາຍຫຼ້າສຸດ</th></tr></thead>
               <tbody>
                 {dead.map((d) => (

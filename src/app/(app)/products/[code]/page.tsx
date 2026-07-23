@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProductDetail, getIsAdmin, getMinStock, getLifecycle, getItemSuppliers, getProductDeptStaff } from "@/lib/products";
+import { getProductDetail, getIsAdmin, getStockThresholds, getLifecycle, getItemSuppliers, getProductDeptStaff } from "@/lib/products";
 import { getComments, getActivities } from "@/lib/chatter";
 import { getCurrentUser } from "@/lib/session";
 import ChatterActivities from "./ChatterActivities";
@@ -84,9 +84,9 @@ export default async function ProductDetailPage({
     getCurrentUser(),
   ]);
   if (!result) notFound();
-  const [isAdmin, minStock, lifecycle, itemSuppliers, comments, activities, deptStaff] = await Promise.all([
+  const [isAdmin, thresholds, lifecycle, itemSuppliers, comments, activities, deptStaff] = await Promise.all([
     user ? getIsAdmin(user.employeeCode) : Promise.resolve(false),
-    getMinStock(decodedCode),
+    getStockThresholds(decodedCode),
     getLifecycle(decodedCode),
     getItemSuppliers(decodedCode),
     getComments(decodedCode),
@@ -220,7 +220,7 @@ export default async function ProductDetailPage({
       {pricePeriodRows10.length > 0 && (
         <Card title="ລາຄາຂາຍຕາມວັນທີ ແລະ ກຸ່ມ">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[860px] text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                   <th className="py-2 pr-4 text-left font-medium">ໄລຍະ</th>
@@ -300,8 +300,8 @@ export default async function ProductDetailPage({
   const stockTab = (
     <div className="space-y-5">
       {isAdmin && (
-        <Card title="ຕັ້ງ min stock (ຂັ້ນຕ່ຳສຳລັບແຈ້ງເຕືອນສັ່ງຊື້)">
-          <MinStockForm itemCode={decodedCode} current={minStock} balance={totalQty} />
+        <Card title="ຕັ້ງ min / max stock (ຊ່ວງ stock ເພື່ອກັນການສັ່ງຊື້ຜິດ)">
+          <MinStockForm itemCode={decodedCode} current={thresholds} balance={totalQty} />
         </Card>
       )}
       {isAdmin && (
@@ -314,7 +314,7 @@ export default async function ProductDetailPage({
           <p className="text-sm text-slate-400">ບໍ່ມີຍອດຄົງເຫຼືອ</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+            <table className="w-full min-w-[520px] text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                   <th className="py-2 pr-4 font-medium">ສາງ</th>
@@ -358,7 +358,7 @@ export default async function ProductDetailPage({
           <p className="text-sm text-slate-400">ບໍ່ມີປະຫວັດເຄື່ອນໄຫວ</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                   <th className="py-2 pr-4 font-medium">ວັນທີ</th>
@@ -429,7 +429,7 @@ export default async function ProductDetailPage({
         {barcodes.length === 0 ? (
           <p className="text-sm text-slate-400">ບໍ່ມີບາໂຄດ</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
                 <th className="py-1 font-medium">ບາໂຄດ</th>
@@ -472,7 +472,7 @@ export default async function ProductDetailPage({
         <p className="text-sm text-slate-400">ບໍ່ມີລາຍການຂາຍອອກ</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
+          <table className="w-full min-w-[900px] text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                 <th className="py-2 pr-4 font-medium">ISN</th>
@@ -535,7 +535,7 @@ export default async function ProductDetailPage({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[940px] text-sm">
+          <table className="w-full min-w-[940px] text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                 <th className="py-2 pr-4 font-medium">ລະຫັດ</th>

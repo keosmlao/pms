@@ -1,6 +1,6 @@
 "use client";
 
-import AsyncSelect from "react-select/async";
+import AsyncSelect from "@/components/ClientAsyncSelect";
 
 type Opt = { value: string; label: string };
 

@@ -1,6 +1,7 @@
 "use client";
 
-import Select from "react-select";
+import { useSyncExternalStore } from "react";
+import Select from "@/components/ClientSelect";
 import type { Option } from "@/lib/products";
 
 type Opt = { value: string; label: string };
@@ -26,11 +27,19 @@ export default function FilterSelect({
   }));
   const selected = opts.find((o) => o.value === value) ?? null;
 
+  // react-select renders client-only (avoids SSR/hydration crash under Next 16 + React 19).
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
+
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </span>
+      {!mounted ? (
+        <div className="flex min-h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-950">
+          {selected?.label ?? "ທັງໝົດ"}
+        </div>
+      ) : (
       <Select<Opt>
         name={name}
         instanceId={name}
@@ -77,6 +86,7 @@ export default function FilterSelect({
         }}
         styles={{ menuPortal: (base) => ({ ...base, zIndex: 50 }) }}
       />
+      )}
     </label>
   );
 }

@@ -211,6 +211,35 @@ export async function getBelowMinStock(mineOf = "", limit = 100): Promise<BelowM
   return rows;
 }
 
+export type AboveMaxItem = {
+  code: string;
+  name: string;
+  brand: string;
+  balance: string;
+  max_qty: string;
+  excess: string;
+};
+
+// Items whose current stock is above the admin-set max stock → do NOT buy more.
+export async function getAboveMaxStock(mineOf = "", limit = 100): Promise<AboveMaxItem[]> {
+  const oc = ownerClause(mineOf, "i", 1);
+  const { rows } = await pool.query<AboveMaxItem>(
+    `SELECT i.code, COALESCE(i.name_1,'') AS name,
+            COALESCE(br.name_1, i.item_brand, '') AS brand,
+            COALESCE(i.balance_qty,0)::text AS balance,
+            m.max_qty::text AS max_qty,
+            (COALESCE(i.balance_qty,0) - m.max_qty)::text AS excess
+       FROM odg_min_stock_setting m
+       JOIN ic_inventory i ON i.code = m.item_code
+       LEFT JOIN ic_brand br ON br.code = i.item_brand
+      WHERE m.max_qty IS NOT NULL AND COALESCE(i.balance_qty,0) > m.max_qty ${oc.sql}
+      ORDER BY (COALESCE(i.balance_qty,0) - m.max_qty) DESC
+      LIMIT ${limit}`,
+    oc.params,
+  );
+  return rows;
+}
+
 export type SupplierSpend = { code: string; supplier: string; docs: number; spend: string };
 
 // Top suppliers by purchase value (ic_trans_detail trans_flag 12 = buy-in).

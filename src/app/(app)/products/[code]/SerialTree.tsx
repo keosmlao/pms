@@ -50,7 +50,7 @@ export default function SerialTree({
 
             {isOpen && (
               <div className="overflow-x-auto border-t border-slate-100 dark:border-slate-800">
-                <table className="w-full min-w-[1240px] text-sm">
+                <table className="w-full min-w-[1240px] text-xs">
                   <thead>
                     <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
                       <th className="px-4 py-2 font-medium">ISN</th>

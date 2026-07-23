@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import Select from "react-select";
+import Select from "@/components/ClientSelect";
 import {
   assignGroupResponsibility,
   removeGroupResponsibility,
