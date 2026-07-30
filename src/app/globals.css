@@ -114,3 +114,466 @@ table tbody tr {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================================
+ * Incentive module — Odoo design-system layer ported from web_sale_order.
+ * Additive & namespaced (all `--odoo-*` / `.odoo-*`); does not touch existing
+ * Product Management styles. Powers src/app/(app)/settings/incentives/*.
+ * ==========================================================================*/
+:root {
+  --odoo-primary: #2563eb;      /* blue-600 */
+  --odoo-primary-dark: #1d4ed8; /* blue-700 */
+  --odoo-primary-light: #60a5fa;/* blue-400 */
+  --odoo-primary-50: #eff6ff;   /* blue-50  */
+  --odoo-primary-100: #dbeafe;  /* blue-100 */
+  --odoo-primary-200: #bfdbfe;  /* blue-200 */
+  --odoo-accent: #0ea5e9;       /* sky-500 — secondary highlight */
+
+  /* Surfaces and lines — Slate neutrals. */
+  --odoo-surface: #ffffff;
+  --odoo-surface-muted: #f8fafc;/* slate-50  */
+  --odoo-border: #f1f5f9;       /* slate-100 */
+  --odoo-border-strong: #e2e8f0;/* slate-200 */
+
+  /* Typography ramp. */
+  --odoo-text: #475569;         /* slate-600 — body */
+  --odoo-text-strong: #0f172a;  /* slate-900 — headings */
+  --odoo-text-muted: #64748b;   /* slate-500 — secondary */
+  --odoo-text-soft: #94a3b8;    /* slate-400 — tertiary */
+
+  /* Status — solid (used for icons / text / outlines). */
+  --odoo-success: #10b981;      /* emerald-500 */
+  --odoo-warning: #f59e0b;      /* amber-500 */
+  --odoo-danger: #ef4444;       /* red-500   */
+  --odoo-info:    #0ea5e9;      /* sky-500   */
+
+  /* Status tints — alert/pill backgrounds, borders, deep-text labels. */
+  --odoo-success-bg: #ecfdf5;        /* emerald-50  */
+  --odoo-success-border: #a7f3d0;    /* emerald-200 */
+  --odoo-success-text: #047857;      /* emerald-700 */
+
+  --odoo-warning-bg: #fffbeb;        /* amber-50  */
+  --odoo-warning-border: #fde68a;    /* amber-200 */
+  --odoo-warning-text: #b45309;      /* amber-700 */
+
+  --odoo-danger-bg: #fef2f2;         /* red-50  */
+  --odoo-danger-border: #fecaca;     /* red-200 */
+  --odoo-danger-text: #b91c1c;       /* red-700 */
+  --odoo-danger-bg-strong: #fee2e2;  /* red-100 — hover */
+  --odoo-danger-dark: #991b1b;       /* red-800 — pressed */
+
+  --odoo-info-bg: #f0f9ff;           /* sky-50  */
+  --odoo-info-border: #bae6fd;       /* sky-200 */
+  --odoo-info-text: #0369a1;         /* sky-700 */
+
+  --odoo-muted-bg: #f1f5f9;          /* slate-100 */
+  --odoo-muted-border: #e2e8f0;      /* slate-200 */
+  --odoo-muted-text: #475569;        /* slate-700 */
+}
+
+@theme inline {
+  /* Expose Odoo tokens as Tailwind colours: bg-odoo-primary, text-odoo-muted, etc. */
+  --color-odoo-primary: var(--odoo-primary);
+  --color-odoo-primary-dark: var(--odoo-primary-dark);
+  --color-odoo-primary-light: var(--odoo-primary-light);
+  --color-odoo-primary-50: var(--odoo-primary-50);
+  --color-odoo-primary-100: var(--odoo-primary-100);
+  --color-odoo-primary-200: var(--odoo-primary-200);
+  --color-odoo-accent: var(--odoo-accent);
+  --color-odoo-surface: var(--odoo-surface);
+  --color-odoo-surface-muted: var(--odoo-surface-muted);
+  --color-odoo-border: var(--odoo-border);
+  --color-odoo-border-strong: var(--odoo-border-strong);
+  --color-odoo-text: var(--odoo-text);
+  --color-odoo-text-strong: var(--odoo-text-strong);
+  --color-odoo-text-muted: var(--odoo-text-muted);
+  --color-odoo-text-soft: var(--odoo-text-soft);
+  --color-odoo-success: var(--odoo-success);
+  --color-odoo-warning: var(--odoo-warning);
+  --color-odoo-danger: var(--odoo-danger);
+  --color-odoo-info: var(--odoo-info);
+
+  /* Semantic status tints — usable as bg-odoo-success-bg, border-odoo-warning-border, etc. */
+  --color-odoo-success-bg: var(--odoo-success-bg);
+  --color-odoo-success-border: var(--odoo-success-border);
+  --color-odoo-success-text: var(--odoo-success-text);
+  --color-odoo-warning-bg: var(--odoo-warning-bg);
+  --color-odoo-warning-border: var(--odoo-warning-border);
+  --color-odoo-warning-text: var(--odoo-warning-text);
+  --color-odoo-danger-bg: var(--odoo-danger-bg);
+  --color-odoo-danger-bg-strong: var(--odoo-danger-bg-strong);
+  --color-odoo-danger-border: var(--odoo-danger-border);
+  --color-odoo-danger-text: var(--odoo-danger-text);
+  --color-odoo-info-bg: var(--odoo-info-bg);
+  --color-odoo-info-border: var(--odoo-info-border);
+  --color-odoo-info-text: var(--odoo-info-text);
+  --color-odoo-muted-bg: var(--odoo-muted-bg);
+  --color-odoo-muted-border: var(--odoo-muted-border);
+  --color-odoo-muted-text: var(--odoo-muted-text);
+}
+
+@layer components {
+  /* Cards / panels — curved with soft organic shadows, hover actions */
+  .odoo-card {
+    background: var(--odoo-surface);
+    border: 1px solid var(--odoo-border-strong);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.03), 0 2px 6px -1px rgba(99, 102, 241, 0.02);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .odoo-card-header {
+    border-bottom: 1px solid var(--odoo-border-strong);
+    background: rgba(248, 250, 252, 0.6);
+    padding: 12px 16px;
+    font-weight: 700;
+    color: var(--odoo-text-strong);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .odoo-page {
+    margin: 0 auto;
+    padding: 24px 18px;
+  }
+  @media (min-width: 640px) {
+    .odoo-page {
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .odoo-page {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+
+  .odoo-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .odoo-page-title {
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 800;
+    color: var(--odoo-text-strong);
+    letter-spacing: -0.01em;
+  }
+
+  .odoo-page-subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--odoo-text-muted);
+  }
+
+  .odoo-alert-danger {
+    border: 1px solid var(--odoo-danger-border);
+    background: var(--odoo-danger-bg);
+    color: var(--odoo-danger-text);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .odoo-alert-success {
+    border: 1px solid var(--odoo-success-border);
+    background: var(--odoo-success-bg);
+    color: var(--odoo-success-text);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .odoo-progress {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--odoo-surface-muted);
+  }
+
+  .odoo-progress-bar {
+    height: 100%;
+    background: var(--odoo-primary);
+  }
+
+  /* Buttons — sleek SaaS button styling with hover scale and transitions */
+  .odoo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+  }
+  .odoo-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .odoo-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .odoo-btn-primary {
+    background: linear-gradient(135deg, var(--odoo-primary) 0%, var(--odoo-primary-dark) 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  }
+  .odoo-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.22);
+  }
+  .odoo-btn-secondary {
+    background: var(--odoo-surface);
+    color: var(--odoo-text);
+    border-color: var(--odoo-border-strong);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .odoo-btn-secondary:hover:not(:disabled) {
+    background: var(--odoo-surface-muted);
+    border-color: var(--odoo-text-muted);
+  }
+  .odoo-btn-danger {
+    background: var(--odoo-surface);
+    color: var(--odoo-danger);
+    border-color: var(--odoo-border-strong);
+  }
+  .odoo-btn-danger:hover:not(:disabled) {
+    background: var(--odoo-danger-bg);
+    border-color: var(--odoo-danger);
+  }
+  .odoo-btn-danger-fill {
+    background: var(--odoo-danger);
+    color: #fff;
+    border-color: var(--odoo-danger);
+  }
+  .odoo-btn-danger-fill:hover:not(:disabled) {
+    background: var(--odoo-danger-dark);
+    border-color: var(--odoo-danger-dark);
+  }
+  .odoo-btn-link {
+    background: transparent;
+    color: var(--odoo-primary);
+    border-color: transparent;
+    padding: 0 4px;
+    height: auto;
+  }
+  .odoo-btn-link:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  .odoo-segmented {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--odoo-border-strong);
+    border-radius: 8px;
+    background: var(--odoo-surface);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+
+  .odoo-segment {
+    padding: 6px 14px;
+    border-left: 1px solid var(--odoo-border-strong);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--odoo-text-strong);
+    background: var(--odoo-surface);
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
+
+  .odoo-segment:first-child {
+    border-left: 0;
+  }
+
+  .odoo-segment:hover {
+    background: var(--odoo-surface-muted);
+  }
+
+  .odoo-segment-active {
+    background: var(--odoo-primary);
+    color: #fff;
+  }
+
+  /* Inputs — clean outlines, soft transitions, focus glows */
+  .odoo-input,
+  .odoo-select,
+  .odoo-textarea {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    font-size: 12px;
+    line-height: 1.42;
+    color: var(--odoo-text-strong);
+    background: var(--odoo-surface);
+    border: 1.5px solid var(--odoo-border-strong);
+    border-radius: 8px;
+    transition: all 150ms ease;
+  }
+  .odoo-input:focus,
+  .odoo-select:focus,
+  .odoo-textarea:focus {
+    outline: none;
+    border-color: var(--odoo-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  }
+  .odoo-input::placeholder,
+  .odoo-textarea::placeholder {
+    color: var(--odoo-text-soft);
+  }
+  .odoo-input:disabled,
+  .odoo-select:disabled,
+  .odoo-textarea:disabled {
+    background: var(--odoo-surface-muted);
+    color: var(--odoo-text-muted);
+    cursor: not-allowed;
+  }
+
+  /* Form field label */
+  .odoo-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--odoo-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .odoo-label-required::after {
+    content: " *";
+    color: var(--odoo-danger);
+  }
+
+  /* Table — Clean, modern list view with rounded corners & thin styling */
+  .odoo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .odoo-table thead th {
+    background: var(--odoo-surface-muted);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    color: var(--odoo-text-strong);
+    border-bottom: 1px solid var(--odoo-border-strong);
+    border-top: 0;
+    white-space: nowrap;
+  }
+  .odoo-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--odoo-border);
+    color: var(--odoo-text);
+    vertical-align: middle;
+  }
+  .odoo-table tbody tr {
+    transition: background 120ms ease;
+  }
+  .odoo-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.03);
+    cursor: pointer;
+  }
+
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  @media (max-width: 640px) {
+    .odoo-page {
+      padding: 14px 12px calc(18px + env(safe-area-inset-bottom));
+    }
+
+    .odoo-page-header {
+      align-items: stretch;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .odoo-page-header > * {
+      min-width: 0;
+    }
+
+    .odoo-page-title {
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .odoo-page-subtitle {
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .odoo-card {
+      border-radius: 10px;
+    }
+
+    .odoo-card-header {
+      padding: 10px 12px;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .odoo-controlbar {
+      align-items: stretch;
+      flex-direction: column;
+      padding: 10px 12px;
+    }
+
+    .odoo-btn {
+      min-height: 40px;
+      height: auto;
+      padding: 8px 12px;
+      line-height: 1.25;
+      white-space: normal;
+    }
+
+    .odoo-page-header .odoo-btn,
+    .odoo-controlbar .odoo-btn {
+      width: 100%;
+    }
+
+    .odoo-input,
+    .odoo-select,
+    .odoo-textarea {
+      min-height: 40px;
+      font-size: 16px;
+    }
+
+    .odoo-segmented {
+      display: flex;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .odoo-segment {
+      flex: 1 0 auto;
+      min-height: 38px;
+      padding: 9px 12px;
+      text-align: center;
+    }
+
+    .odoo-table {
+      font-size: 11px;
+    }
+
+    .odoo-table thead th,
+    .odoo-table tbody td {
+      padding: 8px 10px;
+    }
+
+    .odoo-pill {
+      min-height: 26px;
+      padding: 4px 8px;
+    }
+  }
+}

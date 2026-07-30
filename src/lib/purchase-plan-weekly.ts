@@ -21,11 +21,16 @@ export type WeeklyPlanItem = {
   grp: string;
   stock_qty: string;
   sort: number;
+  plan_period: string; // 'week' | 'month'
   name: string;
   live_stock: string | null;
   avg_week_sale: string;
   // allowed months of stock from odg_stock_policy (sale + stock months), null if no policy
   policy_months: string | null;
+  // average monthly sales (last 3 months, ERP)
+  avg_month_sale: string;
+  // qty already on order but not yet received (odg_po_remain qty_balance)
+  incoming: string;
   // key `${kind}:${week_no}` → qty
   cells: Record<string, number>;
   // actual ERP sales per week_no over the plan's sale window
@@ -60,12 +65,16 @@ export async function getWeeklyPlan(
   // (trans_flag 44 = sale, matching the products stock-movement rule).
   const itemsRes = await pool.query<Omit<WeeklyPlanItem, "cells">>(
     `SELECT it.id, it.item_code, it.model, it.grp, it.stock_qty::text, it.sort,
+            it.plan_period,
             COALESCE(i.name_1, '') AS name,
             i.balance_qty::text AS live_stock,
             COALESCE(s.avg_week, 0)::text AS avg_week_sale,
-            (sp.sale_months + sp.stock_months)::text AS policy_months
+            (sp.sale_months + sp.stock_months)::text AS policy_months,
+            COALESCE(ag.avgsale, 0)::text AS avg_month_sale,
+            COALESCE(po.incoming, 0)::text AS incoming
        FROM odg_pm_weekly_plan_item it
        LEFT JOIN ic_inventory i ON i.code = it.item_code
+       LEFT JOIN odg_stock_aging ag ON ag.ic_code = it.item_code
        LEFT JOIN odg_stock_policy sp
               ON sp.group_main = i.group_main
              AND sp.brand = UPPER(COALESCE(i.item_brand,''))
@@ -77,6 +86,11 @@ export async function getWeeklyPlan(
             AND d.trans_flag = 44 AND d.last_status = 0
             AND d.doc_date >= CURRENT_DATE - 42
        ) s ON it.item_code IS NOT NULL
+       LEFT JOIN LATERAL (
+         SELECT SUM(r.qty_balance) AS incoming
+           FROM odg_po_remain r
+          WHERE r.item_code = it.item_code
+       ) po ON it.item_code IS NOT NULL
       WHERE it.plan_id = $1
       ORDER BY it.grp, it.sort, it.id`,
     [id],

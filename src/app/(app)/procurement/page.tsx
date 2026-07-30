@@ -1,4 +1,6 @@
+import { Fragment } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getAboveMaxStock, getBelowMinStock, getReorderSuggestions, getSupplierSpend } from "@/lib/analytics";
 import { getIsAdmin, getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -20,21 +22,34 @@ const COVER_OPTIONS = [1, 1.5, 2, 3];
 export default async function ProcurementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cover?: string }>;
+  searchParams: Promise<{ cover?: string; group_by?: string; page?: string }>;
 }) {
   const user = await getCurrentUser();
   const isOwner = user ? (await getUserGroupCount(user.employeeCode)) > 0 : false;
   const isAdmin = user ? await getIsAdmin(user.employeeCode) : false;
   const mineOf = isOwner && user ? user.employeeCode : "";
-  const coverRaw = Number((await searchParams).cover);
+  const sp = await searchParams;
+  const coverRaw = Number(sp.cover);
   const cover = COVER_OPTIONS.includes(coverRaw) ? coverRaw : 2;
+  const groupBy = sp.group_by === "brand" ? "brand" : "";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
-  const [reorder, belowMin, aboveMax, suppliers] = await Promise.all([
-    getReorderSuggestions(mineOf, 100),
+  const [reorderFetched, belowMin, aboveMax, suppliers] = await Promise.all([
+    getReorderSuggestions(mineOf, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE, groupBy),
     getBelowMinStock(mineOf, 100),
     getAboveMaxStock(mineOf, 100),
     isAdmin ? getSupplierSpend(180, 15) : Promise.resolve([]),
   ]);
+  const reorderHasNext = reorderFetched.length > PAGE_SIZE;
+  const reorder = reorderFetched.slice(0, PAGE_SIZE);
+  const mkUrl = (patch: Record<string, string>) => {
+    const p = new URLSearchParams();
+    const merged: Record<string, string> = { cover: cover !== 2 ? String(cover) : "", group_by: groupBy, ...patch };
+    for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
+    return `/procurement${p.toString() ? `?${p}` : ""}`;
+  };
+  const pageHref = (pg: number) => mkUrl({ page: pg > 1 ? String(pg) : "" });
 
   return (
     <div className="w-full">
@@ -93,16 +108,24 @@ export default async function ProcurementPage({
       <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-3 dark:border-slate-800">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white">ແນະນຳສັ່ງຊື້ (stock &lt; 1.5 ເດືອນ) · {reorder.length}</h2>
-          {isAdmin && (
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-              <span>ຈຳນວນແນະນຳ ພຽງພໍ:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-950">
-                {COVER_OPTIONS.map((c) => (
-                  <Link key={c} href={`/procurement?cover=${c}`} className={`rounded-md px-2 py-0.5 font-semibold ${cover === c ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>{c} ດ.</Link>
+          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+            <div className="flex items-center gap-1"><span>ຈັດກຸ່ມ:</span>
+              <div className="inline-flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+                {[{ k: "", l: "ບໍ່ຈັດ" }, { k: "brand", l: "ຍີ່ຫໍ້" }].map((o) => (
+                  <Link key={o.k} href={mkUrl({ group_by: o.k, page: "" })} className={`px-2.5 py-0.5 font-semibold ${groupBy === o.k ? "bg-teal-600 text-white" : "bg-white text-slate-600 dark:bg-slate-950 dark:text-slate-300"}`}>{o.l}</Link>
                 ))}
               </div>
             </div>
-          )}
+            {isAdmin && (
+              <div className="flex items-center gap-1"><span>ພຽງພໍ:</span>
+                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-950">
+                  {COVER_OPTIONS.map((c) => (
+                    <Link key={c} href={mkUrl({ cover: String(c), page: "" })} className={`rounded-md px-2 py-0.5 font-semibold ${cover === c ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>{c} ດ.</Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         {reorder.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີສິນຄ້າໃກ້ໝົດ 👍</p> : (
           <div className="overflow-x-auto">
@@ -118,10 +141,17 @@ export default async function ProcurementPage({
                 {isAdmin && <th className="px-4 py-2.5 text-right font-semibold">ແຜນ</th>}
               </tr></thead>
               <tbody>
-                {reorder.map((r) => {
+                {reorder.map((r, i) => {
                   const cover = Number(r.months_cover);
+                  const showHeader = groupBy === "brand" && (i === 0 || (reorder[i - 1].brand || "") !== (r.brand || ""));
                   return (
-                    <tr key={r.code} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
+                    <Fragment key={r.code}>
+                    {showHeader && (
+                      <tr className="border-y border-slate-200 bg-slate-100/80 dark:border-slate-700 dark:bg-slate-800/60">
+                        <td colSpan={isAdmin ? 8 : 7} className="px-4 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-100">▸ {r.brand || "— ບໍ່ລະບຸຍີ່ຫໍ້ —"}</td>
+                      </tr>
+                    )}
+                    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
                       <td className="px-4 py-2 font-mono text-xs"><Link href={`/products/${encodeURIComponent(r.code)}`} className="font-semibold text-blue-700 hover:underline dark:text-blue-400">{r.code}</Link></td>
                       <td className="px-4 py-2 text-slate-700 dark:text-slate-200"><span className="block max-w-xs truncate">{r.name}</span><span className="text-[10px] text-slate-400">{r.brand}</span></td>
                       <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{fmt(r.stockqty)}</td>
@@ -131,6 +161,7 @@ export default async function ProcurementPage({
                       <td className="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{fmt(r.last_buy_price)}</td>
                       {isAdmin && <td className="px-4 py-2"><AddToPlanButton code={r.code} suggested={Math.max(1, Math.ceil(Number(r.avg_sale || 0) * cover - Number(r.stockqty || 0)))} /></td>}
                     </tr>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -138,6 +169,8 @@ export default async function ProcurementPage({
           </div>
         )}
       </div>
+
+      <Pagination current={page} hasNext={reorderHasNext} hrefFor={pageHref} />
 
       {isAdmin && (
         <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">

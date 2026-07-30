@@ -12,7 +12,7 @@ export type ActivityItem = {
 // Recent activity from the app-owned mapping tables. Note: these hold current
 // state (with assigned_by/created_by), so deletions are not recorded here — a
 // full audit trail would need a dedicated log table + triggers.
-export async function getRecentActivity(limit = 100): Promise<ActivityItem[]> {
+export async function getRecentActivity(limit = 100, offset = 0): Promise<ActivityItem[]> {
   const { rows } = await pool.query<ActivityItem>(
     `(
        SELECT 'group' AS kind, r.assigned_at::text AS at,
@@ -39,7 +39,7 @@ export async function getRecentActivity(limit = 100): Promise<ActivityItem[]> {
          LEFT JOIN ic_inventory i ON i.code = m.product_code
      )
      ORDER BY at DESC NULLS LAST
-     LIMIT ${limit}`,
+     LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
   );
   return rows;
 }

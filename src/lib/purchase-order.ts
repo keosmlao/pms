@@ -52,9 +52,11 @@ export async function listPurchaseOrders(opts: {
   mine?: string; // creator employee code → only this person's POs
   dept?: string; // department code → only this department's POs
   limit?: number;
+  offset?: number;
 }): Promise<PoListRow[]> {
   const q = (opts.q ?? "").trim();
-  const limit = Math.min(opts.limit ?? 100, 300);
+  const limit = Math.min(opts.limit ?? 100, 301);
+  const offset = Math.max(0, opts.offset ?? 0);
   const params: unknown[] = [];
   const where: string[] = ["t.trans_flag = 6", "t.doc_format_code IN ('POH','POT')"];
 
@@ -117,7 +119,7 @@ export async function listPurchaseOrders(opts: {
        ) rc ON true
       WHERE ${where.join(" AND ")}
       ORDER BY t.doc_date DESC NULLS LAST, t.doc_no DESC
-      LIMIT ${limit}`,
+      LIMIT ${limit} OFFSET ${offset}`,
     params,
   );
   return rows;
@@ -364,7 +366,30 @@ export type PrImportLine = {
   qty: string; // outstanding qty (qty_balance)
   price: string;
   ref_line: number;
+  balance: number; // current on-hand stock
+  max_qty: number | null; // admin-set max stock (null = not set)
 };
+
+// Current stock + max cap per item code — used to guard over-max purchasing
+// server-side (a backstop to the client-side warning in PoForm).
+export async function getItemStockCaps(
+  codes: string[],
+): Promise<Record<string, { balance: number; max: number | null }>> {
+  const list = [...new Set(codes.filter(Boolean))];
+  if (!list.length) return {};
+  const { rows } = await pool.query<{ code: string; balance: string; max_qty: string | null }>(
+    `SELECT i.code, COALESCE(i.balance_qty,0)::text AS balance, ms.max_qty::text AS max_qty
+       FROM ic_inventory i
+       LEFT JOIN odg_min_stock_setting ms ON ms.item_code = i.code
+      WHERE i.code = ANY($1)`,
+    [list],
+  );
+  const out: Record<string, { balance: number; max: number | null }> = {};
+  for (const r of rows) {
+    out[r.code] = { balance: Number(r.balance) || 0, max: r.max_qty != null ? Number(r.max_qty) : null };
+  }
+  return out;
+}
 export type PrImport = {
   supplier_code: string;
   supplier_name: string;
@@ -372,7 +397,18 @@ export type PrImport = {
 };
 
 export async function getPrImportLines(prNo: string): Promise<PrImport | null> {
-  const { rows } = await pool.query<PrImportLine & { supplier_code: string; supplier_name: string }>(
+  const { rows } = await pool.query<{
+    item_code: string;
+    item_name: string;
+    unit: string;
+    qty: string;
+    price: string;
+    supplier_code: string;
+    supplier_name: string;
+    balance: string;
+    max_qty: string | null;
+    ref_line: number;
+  }>(
     `SELECT r.item_code,
             COALESCE(r.item_name,'') AS item_name,
             COALESCE(NULLIF(r.unit_name,''), '') AS unit,
@@ -380,9 +416,13 @@ export async function getPrImportLines(prNo: string): Promise<PrImport | null> {
             COALESCE(r.price,0)::text AS price,
             COALESCE(r.cust_code,'') AS supplier_code,
             COALESCE(r.cust_name, r.cust_code, '') AS supplier_name,
+            COALESCE(i.balance_qty,0)::text AS balance,
+            ms.max_qty::text AS max_qty,
             COALESCE((SELECT MIN(d.line_number) FROM ic_trans_detail d
                        WHERE d.doc_no = r.doc_no AND d.item_code = r.item_code), 0) AS ref_line
        FROM odg_pr_remain r
+       LEFT JOIN ic_inventory i ON i.code = r.item_code
+       LEFT JOIN odg_min_stock_setting ms ON ms.item_code = r.item_code
       WHERE r.doc_no = $1 AND COALESCE(r.qty_balance,0) > 0
       ORDER BY r.item_code`,
     [prNo],
@@ -398,6 +438,8 @@ export async function getPrImportLines(prNo: string): Promise<PrImport | null> {
       qty: r.qty,
       price: r.price,
       ref_line: Number(r.ref_line) || 0,
+      balance: Number(r.balance) || 0,
+      max_qty: r.max_qty != null ? Number(r.max_qty) : null,
     })),
   };
 }

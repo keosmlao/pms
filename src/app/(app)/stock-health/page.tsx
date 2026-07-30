@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getDeadStock, getStockHealth } from "@/lib/analytics";
 import { getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -13,12 +14,17 @@ function fmtDate(v: string | null) {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : v;
 }
 
-export default async function StockHealthPage() {
+export default async function StockHealthPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const user = await getCurrentUser();
   const isOwner = user ? (await getUserGroupCount(user.employeeCode)) > 0 : false;
   const mineOf = isOwner && user ? user.employeeCode : "";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number((await searchParams).page ?? "1") || 1);
 
-  const [h, dead] = await Promise.all([getStockHealth(mineOf), getDeadStock(mineOf, 100)]);
+  const [h, deadFetched] = await Promise.all([getStockHealth(mineOf), getDeadStock(mineOf, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE)]);
+  const hasNext = deadFetched.length > PAGE_SIZE;
+  const dead = deadFetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => `/stock-health${pg > 1 ? `?page=${pg}` : ""}`;
   const buckets = [
     { label: "0–30 ວັນ", value: h.b0_30, tone: "bg-emerald-500" },
     { label: "31–90", value: h.b31_90, tone: "bg-teal-500" },
@@ -78,6 +84,7 @@ export default async function StockHealthPage() {
           </div>
         )}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }

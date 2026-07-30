@@ -42,7 +42,7 @@ export default function AddItemForm({ planId }: { planId: number }) {
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <form action={action} className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[2fr_1.2fr_0.7fr_auto]">
+      <form action={action} className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-[2fr_1.2fr_0.7fr_0.9fr_auto]">
         <input type="hidden" name="plan_id" value={planId} />
         <AsyncSelect<Opt> name="item_code" instanceId={`wk-item-${planId}`} isClearable loadOptions={loadProducts} placeholder="ຄົ້ນຫາສິນຄ້າໃນ ERP" noOptionsMessage={({ inputValue }) => (inputValue ? "ບໍ່ພົບ" : "ພິມເພື່ອຄົ້ນຫາ")} menuPortalTarget={typeof document !== "undefined" ? document.body : undefined} unstyled classNames={cls} styles={{ menuPortal: (b) => ({ ...b, zIndex: 50 }) }} />
         <input name="model" placeholder="ຊື່ໂມເດວ (ຫຼື ໂມເດວໃໝ່ທີ່ຍັງບໍ່ມີໃນ ERP)" className={inputCls} />
@@ -53,9 +53,13 @@ export default function AddItemForm({ planId }: { planId: number }) {
           <option value="TV" />
           <option value="AIR" />
         </datalist>
+        <select name="plan_period" defaultValue="week" title="ວິທີໃສ່ແຜນຂາຍ: ລາຍອາທິດ ຫຼື ລາຍເດືອນ (1 ຄ່າ/4 ອາທິດ)" className={inputCls}>
+          <option value="week">ແຜນລາຍອາທິດ</option>
+          <option value="month">ແຜນລາຍເດືອນ</option>
+        </select>
         <Btn label="ເພີ່ມໂມເດວ" />
-        {state.error && <p className="text-xs text-red-600 dark:text-red-400 sm:col-span-2 lg:col-span-4">{state.error}</p>}
-        {state.success && <p className="text-xs text-emerald-700 dark:text-emerald-400 sm:col-span-2 lg:col-span-4">{state.success}</p>}
+        {state.error && <p className="text-xs text-red-600 dark:text-red-400 sm:col-span-2 lg:col-span-5">{state.error}</p>}
+        {state.success && <p className="text-xs text-emerald-700 dark:text-emerald-400 sm:col-span-2 lg:col-span-5">{state.success}</p>}
       </form>
       <form action={refreshAction} className="flex items-center gap-2">
         <input type="hidden" name="plan_id" value={planId} />

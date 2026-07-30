@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getDefectsByBrand, getRecentDefects } from "@/lib/analytics";
 import { getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -9,12 +10,20 @@ function fmtDate(v: string | null) {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : v;
 }
 
-export default async function DefectsPage() {
+export default async function DefectsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const user = await getCurrentUser();
   const isOwner = user ? (await getUserGroupCount(user.employeeCode)) > 0 : false;
   const mineOf = isOwner && user ? user.employeeCode : "";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number((await searchParams).page ?? "1") || 1);
 
-  const [byBrand, recent] = await Promise.all([getDefectsByBrand(mineOf, 15), getRecentDefects(mineOf, 100)]);
+  const [byBrand, recentFetched] = await Promise.all([
+    getDefectsByBrand(mineOf, 15),
+    getRecentDefects(mineOf, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE),
+  ]);
+  const hasNext = recentFetched.length > PAGE_SIZE;
+  const recent = recentFetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => `/defects${pg > 1 ? `?page=${pg}` : ""}`;
   const totalOpen = byBrand.reduce((s, b) => s + b.open, 0);
   const total = byBrand.reduce((s, b) => s + b.total, 0);
   const maxB = Math.max(1, ...byBrand.map((b) => b.total));
@@ -65,6 +74,7 @@ export default async function DefectsPage() {
           </div>
         )}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }

@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import AsyncSelect, { type AsyncProps } from "react-select/async";
 import type { GroupBase } from "react-select";
+
+// false during SSR + the first hydration render, true once on the client —
+// via useSyncExternalStore so there's no setState-in-effect (avoids the
+// react-hooks lint error and cascading renders).
+const subscribe = () => () => {};
+const useMounted = () => useSyncExternalStore(subscribe, () => true, () => false);
 
 // react-select injects emotion <style> tags that don't line up between the
 // server render and client hydration in the App Router → hydration mismatch.
@@ -13,8 +19,7 @@ export default function ClientAsyncSelect<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>,
 >(props: AsyncProps<Option, IsMulti, Group>) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
   if (!mounted) {
     return (
       <div

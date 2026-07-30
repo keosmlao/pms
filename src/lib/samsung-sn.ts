@@ -67,7 +67,7 @@ export async function getSamsungSnSummary(): Promise<SamsungSnSummary> {
   return rows[0] ?? { total: 0, claimed: 0, unclaimed: 0, claimed_sold: 0, sold_unclaimed: 0, claimed_in_stock: 0, claimed_unmatched: 0 };
 }
 
-export async function getSamsungSerials(query = "", filter: SamsungSnFilter = "all", limit = 300): Promise<SamsungSnRow[]> {
+export async function getSamsungSerials(query = "", filter: SamsungSnFilter = "all", limit = 300, offset = 0): Promise<SamsungSnRow[]> {
   const params: unknown[] = [];
   const clauses: string[] = [];
 
@@ -119,7 +119,7 @@ export async function getSamsungSerials(query = "", filter: SamsungSnFilter = "a
        LEFT JOIN odg_wms_location1 location ON location.code = inv.location AND location.wh_code = inv.wh_code
        ${where}
       ORDER BY s.record_date DESC NULLS LAST, s.serial_no
-      LIMIT $${params.length}`,
+      LIMIT $${params.length} OFFSET ${Math.max(0, offset)}`,
     params,
   );
   return rows;

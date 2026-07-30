@@ -61,7 +61,7 @@ export async function getStockHealth(mineOf = ""): Promise<StockHealth> {
 }
 
 // Dead / slow stock: has stock but no sale in 90 days, worst (highest value) first.
-export async function getDeadStock(mineOf = "", limit = 100): Promise<AgingItem[]> {
+export async function getDeadStock(mineOf = "", limit = 100, offset = 0): Promise<AgingItem[]> {
   const oc = ownerClause(mineOf, "i", 1);
   const { rows } = await pool.query<AgingItem>(
     `SELECT a.ic_code AS code, COALESCE(a.ic_name,'') AS name,
@@ -74,7 +74,7 @@ export async function getDeadStock(mineOf = "", limit = 100): Promise<AgingItem[
        JOIN ic_inventory i ON i.code = a.ic_code
       WHERE a.stockqty > 0 AND COALESCE(a.sale_90,0) = 0 ${oc.sql}
       ORDER BY a.stockamount DESC NULLS LAST
-      LIMIT ${limit}`,
+      LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
     oc.params,
   );
   return rows;
@@ -131,7 +131,7 @@ export async function getDefectsByBrand(mineOf = "", limit = 20): Promise<Defect
   return rows;
 }
 
-export async function getRecentDefects(mineOf = "", limit = 100): Promise<DefectItem[]> {
+export async function getRecentDefects(mineOf = "", limit = 100, offset = 0): Promise<DefectItem[]> {
   const oc = ownerClause(mineOf, "i", 1);
   const { rows } = await pool.query<DefectItem>(
     `SELECT d.ic_code AS code, COALESCE(d.ic_name,'') AS name, COALESCE(d.item_brand,'') AS brand,
@@ -141,7 +141,7 @@ export async function getRecentDefects(mineOf = "", limit = 100): Promise<Defect
        JOIN ic_inventory i ON i.code = d.ic_code
       WHERE true ${oc.sql}
       ORDER BY d.date_register DESC NULLS LAST
-      LIMIT ${limit}`,
+      LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
     oc.params,
   );
   return rows;
@@ -161,7 +161,7 @@ export type ReorderItem = {
 };
 
 // Items selling but running low on stock (< ~1.5 months cover) → suggest buying.
-export async function getReorderSuggestions(mineOf = "", limit = 100): Promise<ReorderItem[]> {
+export async function getReorderSuggestions(mineOf = "", limit = 100, offset = 0, groupBy = ""): Promise<ReorderItem[]> {
   const oc = ownerClause(mineOf, "i", 1);
   const { rows } = await pool.query<ReorderItem>(
     `SELECT a.ic_code AS code, COALESCE(a.ic_name,'') AS name, COALESCE(a.brand,'') AS brand,
@@ -175,8 +175,8 @@ export async function getReorderSuggestions(mineOf = "", limit = 100): Promise<R
        JOIN ic_inventory i ON i.code = a.ic_code
       WHERE COALESCE(a.avgsale,0) > 0
         AND (COALESCE(a.stockqty,0) / a.avgsale) < 1.5 ${oc.sql}
-      ORDER BY (COALESCE(a.stockqty,0) / a.avgsale) ASC
-      LIMIT ${limit}`,
+      ORDER BY ${groupBy === "brand" ? "COALESCE(a.brand,'') ASC, " : ""}(COALESCE(a.stockqty,0) / a.avgsale) ASC
+      LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
     oc.params,
   );
   return rows;
@@ -311,7 +311,7 @@ export type AbcItem = {
   cum_pct: string; months_cover: string;
 };
 
-export async function getAbcItems(mineOf = "", klass = "A", limit = 300): Promise<AbcItem[]> {
+export async function getAbcItems(mineOf = "", klass = "A", limit = 300, offset = 0): Promise<AbcItem[]> {
   const oc = ownerClause(mineOf, "i", 1);
   const kIdx = oc.params.length + 1;
   const { rows } = await pool.query<AbcItem>(
@@ -324,7 +324,7 @@ export async function getAbcItems(mineOf = "", klass = "A", limit = 300): Promis
        FROM classed
       WHERE abc = $${kIdx}
       ORDER BY usage_value DESC, code
-      LIMIT ${limit}`,
+      LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
     [...oc.params, klass],
   );
   return rows;
@@ -396,7 +396,7 @@ export async function getQualityGaps(mineOf = ""): Promise<QualityGaps> {
 }
 
 // Products with at least one data gap, in-stock first (worth fixing).
-export async function getGapProducts(mineOf = "", limit = 100): Promise<GapProduct[]> {
+export async function getGapProducts(mineOf = "", limit = 100, offset = 0): Promise<GapProduct[]> {
   const oc = ownerClause(mineOf, "i", 1);
   const { rows } = await pool.query<{
     code: string;
@@ -424,7 +424,7 @@ export async function getGapProducts(mineOf = "", limit = 100): Promise<GapProdu
              OR COALESCE(i.item_category,'') = ''
              OR COALESCE(i.item_brand,'') = '')
       ORDER BY i.balance_qty DESC
-      LIMIT ${limit}`,
+      LIMIT ${limit} OFFSET ${Math.max(0, offset)}`,
     oc.params,
   );
   return rows.map((r) => ({

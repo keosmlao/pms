@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   };
 
   const rows = await getProductsForExport(filters);
-  const header = ["ລະຫັດ", "ຊື່ສິນຄ້າ", "ໝວດ", "ຍີ່ຫໍ້", "ຄົງເຫຼືອ", "ໜ່ວຍ", "ຕົ້ນທຶນສະເລ່ຍ", "ຜູ້ຮັບຜິດຊອບ"];
+  const header = ["ລະຫັດ", "ຊື່ສິນຄ້າ", "ໝວດ", "ຍີ່ຫໍ້", "ຄົງເຫຼືອ", "ໜ່ວຍ", "ຕົ້ນທຶນສະເລ່ຍ", "ຂາຍໜ້າຮ້ານ", "ຂາຍສົ່ງ", "ຕົ້ນທຶນປາກເຊ", "ຕົ້ນທຶນວຽງຈັນ", "ຜູ້ຮັບຜິດຊອບ"];
   const lines = [header.join(",")];
   for (const p of rows) {
     lines.push(
@@ -43,6 +43,10 @@ export async function GET(request: NextRequest) {
         csvCell(p.balance_qty),
         csvCell(p.unit_standard_name),
         csvCell(p.average_cost),
+        csvCell(p.price_retail),
+        csvCell(p.price_wholesale),
+        csvCell(p.cost_pks),
+        csvCell(p.cost_vte),
         csvCell(p.responsible_name),
       ].join(","),
     );

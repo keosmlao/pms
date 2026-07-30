@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import {
   createPurchaseOrder,
+  getItemStockCaps,
   type CreatePoInput,
   type PoFormat,
   PO_FORMATS,
 } from "@/lib/purchase-order";
+import { markPrConverted } from "@/lib/purchase-requisition";
 import { getCurrentUser } from "@/lib/session";
 
 export type PoState = { error: string | null; doc_no: string | null };
@@ -56,8 +58,34 @@ export async function createPoAction(
       : [],
   };
 
+  // Server-side backstop for the client over-max warning: reject unless the
+  // user explicitly confirmed. Also catches PR-imported lines and any client bypass.
+  const confirmOver = String(formData.get("confirm_over_max") ?? "") === "1";
+  if (!confirmOver) {
+    const caps = await getItemStockCaps(input.lines.map((l) => l.item_code));
+    const over = input.lines.filter((l) => {
+      const c = caps[l.item_code];
+      return c && c.max != null && c.balance + l.qty > c.max;
+    });
+    if (over.length > 0) {
+      const detail = over
+        .map((l) => `${l.item_code} (${caps[l.item_code].balance}+${l.qty}>${caps[l.item_code].max})`)
+        .join(", ");
+      return {
+        error: `ມີ ${over.length} ລາຍການເກີນ max stock — ຕິກ “ຢືນຢັນສັ່ງຊື້ເກີນ max” ກ່ອນ: ${detail}`,
+        doc_no: null,
+      };
+    }
+  }
+
   const result = await createPurchaseOrder(input, { employeeCode: user.employeeCode });
   if (!result.ok) return { error: result.error, doc_no: null };
+
+  // If this PO was created from an approved PR, mark that PR converted.
+  const prId = Number(formData.get("pr_id"));
+  if (Number.isFinite(prId) && prId > 0) {
+    await markPrConverted(prId, result.doc_no).catch(() => {});
+  }
 
   // Save any files attached on the create form to the new PO.
   const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);

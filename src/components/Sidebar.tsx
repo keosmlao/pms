@@ -9,12 +9,14 @@ const NAV_GROUPS = [
     title: "ພາບລວມ",
     items: [
       { href: "/home", label: "ໜ້າຫຼັກ", icon: HomeIcon, adminOnly: false },
+      { href: "/notifications", label: "ແຈ້ງເຕືອນ & ວຽກ", icon: AlertIcon, adminOnly: false },
     ],
   },
   {
     title: "ສິນຄ້າ",
     items: [
       { href: "/products", label: "ຂໍ້ມູນສິນຄ້າ", icon: BoxIcon, adminOnly: false },
+      { href: "/product-spare-mapping", label: "ສິນຄ້າ–ອາໄຫຼ່", icon: LayersIcon, adminOnly: false },
       { href: "/samsung-sn", label: "SN SAMSUNG", icon: BoxIcon, adminOnly: false },
       { href: "/quality", label: "ຄຸນນະພາບຂໍ້ມູນ", icon: CheckIcon, adminOnly: false },
       { href: "/defects", label: "ຕຳໜິ", icon: AlertIcon, adminOnly: false },
@@ -24,6 +26,8 @@ const NAV_GROUPS = [
     title: "ວິເຄາະ",
     items: [
       { href: "/analytics", label: "ວິເຄາະຂາຍ", icon: ChartIcon, adminOnly: false },
+      { href: "/gp-report", label: "ລາຍງານກຳໄລ", icon: ChartIcon, adminOnly: false },
+      { href: "/pivot", label: "ຕາຕະລາງ Pivot", icon: LayersIcon, adminOnly: false },
       { href: "/stock-health", label: "ສຸຂະພາບ Stock", icon: PulseIcon, adminOnly: false },
       { href: "/abc-analysis", label: "ວິເຄາະ ABC", icon: LayersIcon, adminOnly: false },
       { href: "/stock-policy", label: "ນະໂຍບາຍ Stock", icon: ShieldIcon, adminOnly: false },
@@ -32,10 +36,17 @@ const NAV_GROUPS = [
   {
     title: "ຈັດຊື້",
     items: [
+      { href: "/catalog", label: "ແຄັດຕາລ໊ອກ", icon: GridIcon, adminOnly: false },
+      { href: "/purchase-requisition", label: "ໃບຂໍຊື້", icon: ClipboardIcon, adminOnly: false },
       { href: "/purchase-order", label: "ອອກໃບສັ່ງຊື້", icon: FileTextIcon, adminOnly: false },
       { href: "/procurement", label: "ຈັດຊື້", icon: CartIcon, adminOnly: false },
+      { href: "/replenishment", label: "ເຕີມສິນຄ້າອັດຕະໂນມັດ", icon: SparkIcon, adminOnly: false },
+      { href: "/vendors", label: "ຜູ້ສະໜອງ", icon: UsersIcon, adminOnly: false },
+      { href: "/payables", label: "ໜີ້ຄ້າງຈ່າຍ", icon: FileTextIcon, adminOnly: false },
       { href: "/purchase-plan", label: "ແຜນການສັ່ງຊື້", icon: ClipboardIcon, adminOnly: true },
       { href: "/purchase-plan/weekly", label: "ແຜນສັ່ງຊື້ລາຍອາທິດ", icon: CalendarIcon, adminOnly: false },
+      { href: "/purchase-plan/monthly", label: "ແຜນຂາຍລາຍເດືອນ", icon: CalendarIcon, adminOnly: false },
+      { href: "/purchase-plan/suggest", label: "ຄຳແນະນຳຊື້", icon: SparkIcon, adminOnly: false },
       { href: "/spare-import", label: "ນຳເຂົ້າອາໄຫຼ່", icon: ImportIcon, adminOnly: true },
     ],
   },
@@ -43,6 +54,7 @@ const NAV_GROUPS = [
     title: "ບໍລິຫານ",
     items: [
       { href: "/kpi", label: "ຜົນງານທີມ", icon: ChartIcon, adminOnly: true },
+      { href: "/settings/incentives", label: "ຕັ້ງຄ່າ Incentive", icon: AwardIcon, adminOnly: true },
       { href: "/staff", label: "ຈັດການພະນັກງານ", icon: UsersIcon, adminOnly: true },
       { href: "/audit", label: "ບັນທຶກກິດຈະກຳ", icon: ClockIcon, adminOnly: true },
     ],
@@ -51,6 +63,9 @@ const NAV_GROUPS = [
 
 function CartIcon({ className }: { className?: string }) {
   return (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>);
+}
+function AwardIcon({ className }: { className?: string }) {
+  return (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6" /><path d="M15.5 12.5 17 22l-5-3-5 3 1.5-9.5" /></svg>);
 }
 function ChartIcon({ className }: { className?: string }) {
   return (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M7 14l3-4 4 3 5-7" /></svg>);
@@ -116,6 +131,23 @@ function ShieldIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+function SparkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" />
     </svg>
   );
 }

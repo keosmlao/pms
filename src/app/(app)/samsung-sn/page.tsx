@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getSamsungSerials, getSamsungSnSummary, type SamsungSnFilter } from "@/lib/samsung-sn";
 import { getIsAdmin } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -10,17 +11,28 @@ function fmtDate(value: string | null) {
   return match ? `${match[3]}-${match[2]}-${match[1]}` : value;
 }
 
-export default async function SamsungSnPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+export default async function SamsungSnPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string }> }) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
   const valid: SamsungSnFilter[] = ["all", "claimed", "unclaimed", "claimed_sold", "sold_unclaimed", "claimed_stock"];
   const status = valid.includes(params.status as SamsungSnFilter) ? params.status as SamsungSnFilter : "all";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(params.page ?? "1") || 1);
   const user = await getCurrentUser();
-  const [summary, serials, isAdmin] = await Promise.all([
+  const [summary, serialsFetched, isAdmin] = await Promise.all([
     getSamsungSnSummary(),
-    getSamsungSerials(query, status),
+    getSamsungSerials(query, status, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE),
     user ? getIsAdmin(user.employeeCode) : Promise.resolve(false),
   ]);
+  const hasNext = serialsFetched.length > PAGE_SIZE;
+  const serials = serialsFetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => {
+    const p = new URLSearchParams();
+    if (query) p.set("q", query);
+    if (status !== "all") p.set("status", status);
+    if (pg > 1) p.set("page", String(pg));
+    return `/samsung-sn${p.toString() ? `?${p}` : ""}`;
+  };
 
   return (
     <div className="w-full">
@@ -62,6 +74,7 @@ export default async function SamsungSnPage({ searchParams }: { searchParams: Pr
           </tr>)}</tbody>
         </table></div>}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }

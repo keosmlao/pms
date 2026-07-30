@@ -46,6 +46,9 @@ type Props = {
   currencies: { code: string; label: string }[];
   vatOptions: { value: string; label: string; type: number; rate: number }[];
   requester: { code: string; name: string };
+  // Seed lines when creating a PO from an approved PR (A-3 conversion).
+  initialLines?: { item_code: string; item_name: string; unit: string; qty: number; price: number }[];
+  prId?: number;
 };
 
 const selectCls = {
@@ -95,7 +98,7 @@ function SaveButton({ blocked }: { blocked?: boolean }) {
   );
 }
 
-export default function PoForm({ warehouses, departments, defaultDept, formats, currencies, vatOptions, requester }: Props) {
+export default function PoForm({ warehouses, departments, defaultDept, formats, currencies, vatOptions, requester, initialLines, prId }: Props) {
   const [state, action] = useActionState<PoState, FormData>(createPoAction, { error: null, doc_no: null });
 
   const [format, setFormat] = useState<"POH" | "POT">("POH");
@@ -108,7 +111,11 @@ export default function PoForm({ warehouses, departments, defaultDept, formats, 
   const [eta, setEta] = useState("");
   const [creditDay, setCreditDay] = useState(0);
   const [remark, setRemark] = useState("");
-  const [lines, setLines] = useState<Line[]>([blankLine()]);
+  const [lines, setLines] = useState<Line[]>(() =>
+    initialLines?.length
+      ? initialLines.map((l) => ({ ...blankLine(), item_code: l.item_code, item_name: l.item_name, unit: l.unit, qty: l.qty, price: l.price }))
+      : [blankLine()],
+  );
   const [mode, setMode] = useState<"new" | "pr">("new");
   const [prMsg, setPrMsg] = useState("");
   const [confirmOver, setConfirmOver] = useState(false);
@@ -136,7 +143,7 @@ export default function PoForm({ warehouses, departments, defaultDept, formats, 
     setPrMsg("");
     const res = await fetch(`/api/pr-lines?pr=${encodeURIComponent(prNo)}`);
     if (!res.ok) return;
-    const data: { supplier_code: string; supplier_name: string; lines: { item_code: string; item_name: string; unit: string; qty: string; price: string; ref_line: number }[] } | null = await res.json();
+    const data: { supplier_code: string; supplier_name: string; lines: { item_code: string; item_name: string; unit: string; qty: string; price: string; ref_line: number; balance: number; max_qty: number | null }[] } | null = await res.json();
     if (!data) return;
     if (supplier && supplier.value !== data.supplier_code) {
       setPrMsg(`PR ນີ້ເປັນຂອງ supplier ອື່ນ (${data.supplier_name}) — 1 PO = 1 supplier`);
@@ -148,7 +155,7 @@ export default function PoForm({ warehouses, departments, defaultDept, formats, 
       const imported: Line[] = data.lines.map((pl) => ({
         id: seq++, item_code: pl.item_code, item_name: pl.item_name, unit: pl.unit,
         qty: Number(pl.qty) || 0, price: Number(pl.price) || 0, wh_code: "",
-        stand_value: 1, divide_value: 1, balance: 0, max_qty: null, dii_actual: null, dii_target: null, ref_doc_no: prNo, ref_line: pl.ref_line,
+        stand_value: 1, divide_value: 1, balance: pl.balance, max_qty: pl.max_qty, dii_actual: null, dii_target: null, ref_doc_no: prNo, ref_line: pl.ref_line,
       }));
       const next = [...kept, ...imported];
       return next.length ? next : [blankLine()];
@@ -234,6 +241,8 @@ export default function PoForm({ warehouses, departments, defaultDept, formats, 
   return (
     <form action={action} className="w-full pb-10 text-xs">
       <input type="hidden" name="payload" value={payload} />
+      <input type="hidden" name="confirm_over_max" value={confirmOver ? "1" : ""} />
+      {prId ? <input type="hidden" name="pr_id" value={prId} /> : null}
 
       {/* Odoo-style control bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

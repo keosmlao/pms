@@ -54,6 +54,7 @@ export async function addWeeklyItem(_prev: WeeklyState, formData: FormData): Pro
   const itemCode = String(formData.get("item_code") ?? "").trim();
   const modelText = String(formData.get("model") ?? "").trim();
   const grp = String(formData.get("grp") ?? "").trim().toUpperCase();
+  const period = String(formData.get("plan_period") ?? "week") === "month" ? "month" : "week";
   if (!planId) return { error: "ຂໍ້ມູນບໍ່ຄົບ", success: null };
   if (!itemCode && !modelText) return { error: "ເລືອກສິນຄ້າ ຫຼື ພິມຊື່ໂມເດວ", success: null };
 
@@ -74,10 +75,10 @@ export async function addWeeklyItem(_prev: WeeklyState, formData: FormData): Pro
 
   try {
     await pool.query(
-      `INSERT INTO odg_pm_weekly_plan_item (plan_id, item_code, model, grp, stock_qty, sort)
-       VALUES ($1, $2, $3, $4, $5,
+      `INSERT INTO odg_pm_weekly_plan_item (plan_id, item_code, model, grp, stock_qty, plan_period, sort)
+       VALUES ($1, $2, $3, $4, $5, $6,
                COALESCE((SELECT MAX(sort) + 1 FROM odg_pm_weekly_plan_item WHERE plan_id = $1), 0))`,
-      [planId, code, model.slice(0, 80), grp.slice(0, 30), stock],
+      [planId, code, model.slice(0, 80), grp.slice(0, 30), stock, period],
     );
   } catch (e) {
     if ((e as { code?: string }).code === "23505") return { error: "ໂມເດວນີ້ມີໃນແຜນແລ້ວ", success: null };
@@ -85,6 +86,19 @@ export async function addWeeklyItem(_prev: WeeklyState, formData: FormData): Pro
   }
   revalidatePath(`/purchase-plan/weekly/${planId}`);
   return { error: null, success: "ເພີ່ມແລ້ວ" };
+}
+
+export async function setItemPeriod(planId: number, itemId: number, period: "week" | "month"): Promise<WeeklyState> {
+  const user = await admin();
+  if (!user) return { error: "ບໍ່ມີສິດ", success: null };
+  if (!planId || !itemId || (period !== "week" && period !== "month"))
+    return { error: "ຂໍ້ມູນບໍ່ຄົບ", success: null };
+  await pool.query(
+    `UPDATE odg_pm_weekly_plan_item SET plan_period = $3 WHERE id = $2 AND plan_id = $1`,
+    [planId, itemId, period],
+  );
+  revalidatePath(`/purchase-plan/weekly/${planId}`);
+  return { error: null, success: null };
 }
 
 export async function removeWeeklyItem(_prev: WeeklyState, formData: FormData): Promise<WeeklyState> {

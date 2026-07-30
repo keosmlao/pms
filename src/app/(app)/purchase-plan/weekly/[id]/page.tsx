@@ -40,9 +40,12 @@ export default async function WeeklyPlanDetailPage({
     grp: it.grp,
     name: it.name,
     stock: Number(it.stock_qty) || 0,
+    planPeriod: it.plan_period === "month" ? "month" : "week",
     liveStock: it.live_stock == null ? null : Number(it.live_stock),
     avgWeekSale: Number(it.avg_week_sale) || 0,
     policyMonths: it.policy_months == null ? null : Number(it.policy_months),
+    avgMonthSale: Number(it.avg_month_sale) || 0,
+    incoming: Number(it.incoming) || 0,
     cells: it.cells,
     actual: it.actual,
   }));

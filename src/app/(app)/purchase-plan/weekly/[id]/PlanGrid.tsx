@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { removeWeeklyItem, saveWeeklyCells, type CellChange } from "../actions";
+import { removeWeeklyItem, saveWeeklyCells, setItemPeriod, type CellChange } from "../actions";
 
 export type GridItem = {
   id: number;
@@ -11,10 +11,13 @@ export type GridItem = {
   model: string;
   grp: string;
   name: string;
+  planPeriod: "week" | "month"; // sales-plan entry granularity
   stock: number; // snapshot used for the purchase computation
   liveStock: number | null;
   avgWeekSale: number;
   policyMonths: number | null; // allowed months of stock (DII target)
+  avgMonthSale: number; // avg monthly sales (ERP, ~3mo)
+  incoming: number; // qty already on order, not yet received
   cells: Record<string, number>; // `${kind}:${week}` → qty
   actual: Record<number, number>; // week → actual ERP sales qty
 };
@@ -58,6 +61,42 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
     setMsg(null);
   };
 
+  // Put a recommended buy qty into the arrival plan, spread evenly across the
+  // arrival weeks (integer split, remainder to the first weeks). Overwrites the
+  // item's current arrival cells so re-applying is idempotent.
+  const applyRecommend = (itemId: number, qty: number) => {
+    if (qty <= 0 || !arrivalWeeks.length) return;
+    const base = Math.floor(qty / arrivalWeeks.length);
+    let rem = qty - base * arrivalWeeks.length;
+    setEdits((e) => {
+      const next = { ...e };
+      for (const w of arrivalWeeks) {
+        next[`${itemId}:arrival:${w}`] = base + (rem > 0 ? 1 : 0);
+        if (rem > 0) rem--;
+      }
+      return next;
+    });
+    setMsg("ໃສ່ຄຳແນະນຳເຂົ້າແຜນເອີ້ນເຄື່ອງເຂົ້າແລ້ວ — ກວດ ແລ້ວກົດບັນທຶກ");
+  };
+
+  const applyAllRecommend = () => {
+    setEdits((e) => {
+      const next = { ...e };
+      for (const it of items) {
+        const qty = computed.get(it.id)?.recommend ?? 0;
+        if (qty <= 0) continue;
+        const base = Math.floor(qty / arrivalWeeks.length);
+        let rem = qty - base * arrivalWeeks.length;
+        for (const w of arrivalWeeks) {
+          next[`${it.id}:arrival:${w}`] = base + (rem > 0 ? 1 : 0);
+          if (rem > 0) rem--;
+        }
+      }
+      return next;
+    });
+    setMsg("ໃສ່ຄຳແນະນຳທຸກໂມເດວເຂົ້າແຜນເອີ້ນເຄື່ອງເຂົ້າແລ້ວ — ກວດ ແລ້ວກົດບັນທຶກ");
+  };
+
   const dirtyCount = Object.keys(edits).length;
 
   const save = () => {
@@ -87,6 +126,38 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
     });
   };
 
+  const changePeriod = (itemId: number, period: "week" | "month") => {
+    if (dirtyCount > 0 && !confirm("ມີການແກ້ໄຂຍັງບໍ່ບັນທຶກ ຈະຫາຍໄປ — ສືບຕໍ່ບໍ່?")) return;
+    startTransition(async () => {
+      await setItemPeriod(planId, itemId, period);
+      router.refresh();
+    });
+  };
+
+  // Month blocks: consecutive 4-week chunks of the sale window. A monthly item
+  // enters one figure per block, distributed evenly across the block's weeks.
+  const monthBlocks = useMemo(() => {
+    const blocks: number[][] = [];
+    for (let i = 0; i < saleWeeks.length; i += 4) blocks.push(saleWeeks.slice(i, i + 4));
+    return blocks;
+  }, [saleWeeks]);
+
+  const setMonthVal = (itemId: number, block: number[], raw: string) => {
+    const total = raw === "" ? 0 : Number(raw);
+    if (!Number.isFinite(total) || total < 0) return;
+    const base = Math.floor(total / block.length);
+    let rem = total - base * block.length;
+    setEdits((e) => {
+      const next = { ...e };
+      for (const w of block) {
+        next[`${itemId}:sale:${w}`] = base + (rem > 0 ? 1 : 0);
+        if (rem > 0) rem--;
+      }
+      return next;
+    });
+    setMsg(null);
+  };
+
   // Projected remaining stock at the end of each sale week:
   // start stock + planned arrivals − sales (actual for past weeks, plan from
   // the current week onward).
@@ -109,12 +180,25 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
 
   // Per-item computed figures.
   const computed = useMemo(() => {
-    const m = new Map<number, { saleTotal: number; purchase: number; arrivalTotal: number; diff: number }>();
+    const m = new Map<number, {
+      saleTotal: number; purchase: number; arrivalTotal: number; diff: number;
+      target: number | null; recommend: number | null; coverMonths: number | null;
+    }>();
     for (const it of items) {
       const saleTotal = saleWeeks.reduce((s, w) => s + val(it, "sale", w), 0);
       const purchase = Math.max(0, saleTotal - it.stock);
       const arrivalTotal = arrivalWeeks.reduce((s, w) => s + val(it, "arrival", w), 0);
-      m.set(it.id, { saleTotal, purchase, arrivalTotal, diff: arrivalTotal - purchase });
+      // Policy-based recommendation: hold DII target months of stock at the
+      // current monthly sales rate, netting off stock already on hand + on order.
+      let target: number | null = null;
+      let recommend: number | null = null;
+      let coverMonths: number | null = null;
+      if (it.policyMonths != null && it.avgMonthSale > 0) {
+        target = Math.round(it.avgMonthSale * it.policyMonths);
+        recommend = Math.max(0, Math.round(target - it.stock - it.incoming));
+        coverMonths = Math.round(((it.stock + it.incoming) / it.avgMonthSale) * 10) / 10;
+      }
+      m.set(it.id, { saleTotal, purchase, arrivalTotal, diff: arrivalTotal - purchase, target, recommend, coverMonths });
     }
     return m;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,14 +219,15 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
   }, [items]);
 
   const totals = useMemo(() => {
-    let sale = 0, purchase = 0, arrival = 0;
+    let sale = 0, purchase = 0, arrival = 0, recommend = 0;
     for (const it of items) {
       const c = computed.get(it.id)!;
       sale += c.saleTotal;
       purchase += c.purchase;
       arrival += c.arrivalTotal;
+      recommend += c.recommend ?? 0;
     }
-    return { sale, purchase, arrival, diff: arrival - purchase };
+    return { sale, purchase, arrival, diff: arrival - purchase, recommend };
   }, [items, computed]);
 
   const stickyTh = "sticky left-0 z-10 bg-slate-50 px-3 py-2 text-left font-semibold dark:bg-slate-950";
@@ -153,7 +238,7 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
     // columns of both tables total 270px, week columns are 52px in both.
     const WEEK_W = 52;
     const lead = kind === "sale" ? [150, 56, 64] : [150, 120];
-    const tail = kind === "sale" ? [64, 72, 64, 28] : [64, 72, 28];
+    const tail = kind === "sale" ? [64, 72, 64, 76, 28] : [64, 72, 28];
     const cols = [...lead, ...weeks.map(() => WEEK_W), ...tail];
     const tableW = cols.reduce((a, b) => a + b, 0);
     return (
@@ -181,6 +266,7 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
               <th className="px-2 py-2 text-right font-semibold">ລວມ</th>
               {kind === "sale" && <th className="px-2 py-2 text-right font-semibold" title="ຍອດຂາຍຈິງຈາກ ERP ໃນຊ່ວງແຜນ ແລະ % ທຽບແຜນຮອດອາທິດປັດຈຸບັນ">ຂາຍຈິງ</th>}
               <th className="px-2 py-2 text-right font-semibold">{kind === "sale" ? "ຕ້ອງສັ່ງ" : "ສ່ວນຕ່າງ"}</th>
+              {kind === "sale" && <th className="px-2 py-2 text-right font-semibold text-teal-700 dark:text-teal-300" title="ແນະນຳຊື້ = (ຍອດຂາຍ/ເດືອນ × DII ນະໂຍບາຍ) − Stock − ເຄື່ອງກຳລັງມາ">ແນະນຳຊື້</th>}
               <th className="px-1 py-2"></th>
             </tr>
           </thead>
@@ -200,6 +286,16 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
                         ) : (
                           <span className="block truncate font-semibold text-slate-700 dark:text-slate-200" title={`${it.model} — ຍັງບໍ່ມີໃນ ERP`}>{it.model} <span className="text-[9px] text-amber-600">●NEW</span></span>
                         )}
+                        {kind === "sale" && (
+                          readOnly ? (
+                            <span className="mt-0.5 inline-block text-[9px] text-slate-400">{it.planPeriod === "month" ? "ແຜນ: ລາຍເດືອນ" : "ແຜນ: ລາຍອາທິດ"}</span>
+                          ) : (
+                            <span className="mt-0.5 inline-flex overflow-hidden rounded border border-slate-200 text-[9px] dark:border-slate-700">
+                              <button type="button" onClick={() => changePeriod(it.id, "week")} className={`px-1.5 py-0.5 ${it.planPeriod !== "month" ? "bg-teal-600 text-white" : "text-slate-500"}`} title="ວາງແຜນຂາຍລາຍອາທິດ">ອາທິດ</button>
+                              <button type="button" onClick={() => changePeriod(it.id, "month")} className={`px-1.5 py-0.5 ${it.planPeriod === "month" ? "bg-teal-600 text-white" : "text-slate-500"}`} title="ວາງແຜນຂາຍລາຍເດືອນ (ໃສ່ 1 ຄ່າຕໍ່ 4 ອາທິດ)">ເດືອນ</button>
+                            </span>
+                          )
+                        )}
                       </td>
                       {kind === "sale" && <td className="px-2 py-1.5 text-right text-slate-400">{fmt(it.avgWeekSale)}</td>}
                       {kind === "sale" && (
@@ -209,20 +305,42 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
                         </td>
                       )}
                       {kind === "arrival" && <td className="px-2 py-1.5 text-right font-bold text-teal-600 dark:text-teal-400">{fmt(c.purchase)}</td>}
-                      {weeks.map((w) => {
+                      {weeks.map((w, wi) => {
                         const k = `${it.id}:${kind}:${w}`;
                         const edited = k in edits;
                         const act = kind === "sale" ? it.actual[w] : undefined;
+                        const monthly = kind === "sale" && it.planPeriod === "month";
                         return (
                           <td key={w} className={`px-0.5 py-0.5 text-right align-top ${w === currentWeek ? "bg-teal-50/60 dark:bg-teal-900/15" : ""}`}>
-                            <input
-                              type="number"
-                              min={0}
-                              value={String(val(it, kind, w))}
-                              disabled={readOnly}
-                              onChange={(e) => setVal(it.id, kind, w, e.target.value)}
-                              className={`${cellInputCls} ${edited ? "bg-amber-50 font-bold dark:bg-amber-900/30" : ""} ${val(it, kind, w) === 0 ? "text-slate-300 dark:text-slate-600" : ""} disabled:hover:border-transparent`}
-                            />
+                            {monthly ? (
+                              wi % 4 === 0 ? (() => {
+                                const block = monthBlocks[Math.floor(wi / 4)];
+                                const monthTotal = block.reduce((s, bw) => s + val(it, "sale", bw), 0);
+                                const blockEdited = block.some((bw) => `${it.id}:sale:${bw}` in edits);
+                                return (
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={String(monthTotal)}
+                                    disabled={readOnly}
+                                    onChange={(e) => setMonthVal(it.id, block, e.target.value)}
+                                    title={`ແຜນຂາຍ 1 ເດືອນ (${wkLabel(block[0])}–${wkLabel(block[block.length - 1])}) — ແບ່ງເທົ່າກັນທຸກອາທິດ`}
+                                    className={`${cellInputCls} border ${blockEdited ? "border-amber-400 bg-amber-50 font-bold dark:bg-amber-900/30" : "border-teal-300 bg-teal-50/40 dark:border-teal-700 dark:bg-teal-900/10"} ${monthTotal === 0 ? "text-slate-300 dark:text-slate-600" : "font-semibold"}`}
+                                  />
+                                );
+                              })() : (
+                                <div className="pr-1 text-right text-[9px] leading-tight text-teal-500/70" title="ແບ່ງມາຈາກແຜນລາຍເດືອນ">{fmt(val(it, "sale", w))}</div>
+                              )
+                            ) : (
+                              <input
+                                type="number"
+                                min={0}
+                                value={String(val(it, kind, w))}
+                                disabled={readOnly}
+                                onChange={(e) => setVal(it.id, kind, w, e.target.value)}
+                                className={`${cellInputCls} ${edited ? "bg-amber-50 font-bold dark:bg-amber-900/30" : ""} ${val(it, kind, w) === 0 ? "text-slate-300 dark:text-slate-600" : ""} disabled:hover:border-transparent`}
+                              />
+                            )}
                             {kind === "sale" && (
                               <div className="pr-1 text-right text-[9px] leading-tight text-slate-400" title={`ຂາຍຈິງ ${wkLabel(w)}`}>{fmt(act ?? 0)}</div>
                             )}
@@ -263,6 +381,23 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
                       <td className={`px-2 py-1.5 text-right font-bold ${kind === "sale" ? "text-teal-600 dark:text-teal-400" : c.diff === 0 ? "text-emerald-600" : "text-red-600"}`}>
                         {kind === "sale" ? fmt(c.purchase) : (c.diff > 0 ? "+" : "") + fmt(c.diff)}
                       </td>
+                      {kind === "sale" && (
+                        <td className="px-2 py-1.5 text-right">
+                          {c.recommend == null ? (
+                            <span className="text-[9px] text-slate-400" title="ບໍ່ມີນະໂຍບາຍ ຫຼື ບໍ່ມີຍອດຂາຍ">-</span>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={readOnly || c.recommend === 0}
+                              onClick={() => applyRecommend(it.id, c.recommend!)}
+                              title={`ເປົ້າ ${fmt(it.avgMonthSale)}/ດ × ${it.policyMonths}ດ = ${fmt(c.target!)} − stock ${fmt(it.stock)} − ກຳລັງມາ ${fmt(it.incoming)}${c.coverMonths != null ? ` · ມີພຽງພໍ ${fmt(c.coverMonths)}ດ` : ""}${readOnly || c.recommend === 0 ? "" : " — ກົດເພື່ອໃສ່ເຂົ້າແຜນເອີ້ນເຄື່ອງເຂົ້າ"}`}
+                              className={`font-bold ${c.recommend! > 0 ? "text-teal-600 hover:underline dark:text-teal-400" : "text-slate-400"} disabled:no-underline`}
+                            >
+                              {fmt(c.recommend!)}
+                            </button>
+                          )}
+                        </td>
+                      )}
                       <td className="px-1 py-1.5">
                         {kind === "sale" && !readOnly && (
                           <button onClick={() => removeItem(it.id)} title="ລຶບອອກຈາກແຜນ" className="text-slate-300 hover:text-red-500">✕</button>
@@ -291,6 +426,7 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
                   <td className="px-2 py-1.5 text-right">{fmt(kind === "sale" ? gSale : gArrival)}</td>
                   {kind === "sale" && <td className="px-2 py-1.5 text-right text-indigo-600 dark:text-indigo-400">{fmt(g.rows.reduce((s, r) => s + saleWeeks.reduce((x, w) => x + (r.actual[w] ?? 0), 0), 0))}</td>}
                   <td className="px-2 py-1.5 text-right">{kind === "sale" ? fmt(gPurchase) : (gArrival - gPurchase > 0 ? "+" : "") + fmt(gArrival - gPurchase)}</td>
+                  {kind === "sale" && <td className="px-2 py-1.5 text-right text-teal-700 dark:text-teal-300">{fmt(g.rows.reduce((s, r) => s + (computed.get(r.id)!.recommend ?? 0), 0))}</td>}
                   <td></td>
                 </tr>,
               ];
@@ -317,6 +453,7 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
               <td className={`px-2 py-2 text-right ${kind === "arrival" && totals.diff !== 0 ? "text-red-600" : ""}`}>
                 {kind === "sale" ? fmt(totals.purchase) : (totals.diff > 0 ? "+" : "") + fmt(totals.diff)}
               </td>
+              {kind === "sale" && <td className="px-2 py-2 text-right text-teal-700 dark:text-teal-300">{fmt(totals.recommend)}</td>}
               <td></td>
             </tr>
           </tbody>
@@ -343,7 +480,27 @@ export default function PlanGrid({ planId, saleWeeks, arrivalWeeks, items, readO
         ))}
       </div>
 
-      {section("sale", saleWeeks, "ແຜນຂາຍລາຍອາທິດ (Sales Plan)", "ແຕ່ລະຊ່ອງ 3 ແຖວ: ແຜນຂາຍ (ພິມໄດ້) · ສີເທົາ = ຍອດຂາຍຈິງຈາກ ERP · ສີຟ້າ = ສະຕັອກຄົງເຫຼືອຄາດຄະເນທ້າຍອາທິດ (ຕົ້ນງວດ + ເຄື່ອງເຂົ້າຕາມແຜນ − ຍອດຂາຍ, ຕິດລົບ = ສີແດງ ເຄື່ອງຈະຂາດ · ສີເຫຼືອງ = ເກີນນະໂຍບາຍ DII ຂອງຍີ່ຫໍ້) · ຄໍລຳພື້ນຟ້າ = ອາທິດປັດຈຸບັນ")}
+      {/* Recommendation banner */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50/60 px-4 py-3 dark:border-teal-800/50 dark:bg-teal-900/15">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-teal-700 dark:text-teal-300">ຄຳແນະນຳຊື້ອັດຕະໂນມັດ (ຕາມນະໂຍບາຍ DII)</p>
+          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">
+            ລວມແນະນຳຊື້ <span className="text-lg font-bold text-teal-700 dark:text-teal-300">{fmt(totals.recommend)}</span> ໜ່ວຍ
+            <span className="ml-2 text-[10px] text-slate-500">= (ຍອດຂາຍ/ເດືອນ × DII) − Stock − ເຄື່ອງກຳລັງມາ</span>
+          </p>
+        </div>
+        {!readOnly && totals.recommend > 0 && (
+          <button
+            type="button"
+            onClick={applyAllRecommend}
+            className="rounded-lg bg-teal-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-teal-500"
+          >
+            ⇩ ໃສ່ຄຳແນະນຳທັງໝົດເຂົ້າແຜນເອີ້ນເຄື່ອງເຂົ້າ
+          </button>
+        )}
+      </div>
+
+      {section("sale", saleWeeks, "ແຜນຂາຍ (Sales Plan)", "ແຕ່ລະຊ່ອງ 3 ແຖວ: ແຜນຂາຍ (ພິມໄດ້) · ສີເທົາ = ຍອດຂາຍຈິງຈາກ ERP · ສີຟ້າ = ສະຕັອກຄາດຄະເນທ້າຍອາທິດ (ຕິດລົບ=ແດງ ຈະຂາດ · ເຫຼືອງ=ເກີນນະໂຍບາຍ DII) · ປຸ່ມ ອາທິດ/ເດືອນ ຂ້າງໂມເດວ = ເລືອກໃສ່ແຜນເປັນລາຍອາທິດ ຫຼື ລາຍເດືອນ (1 ຄ່າ/4 ອາທິດ)")}
       {section("arrival", arrivalWeeks, "ແຜນເອີ້ນເຄື່ອງເຂົ້າ (Arrival Plan)", "ແບ່ງຈຳນວນທີ່ຕ້ອງສັ່ງໃຫ້ເຂົ້າແຕ່ລະອາທິດ · ສ່ວນຕ່າງຄວນເປັນ 0")}
 
       {/* Save bar */}

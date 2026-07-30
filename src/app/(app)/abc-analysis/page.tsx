@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getAbcSummary, getAbcItems } from "@/lib/analytics";
 import { getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -18,17 +19,28 @@ const CLASS_META: Record<string, { color: string; ring: string; desc: string }> 
 export default async function AbcAnalysisPage({
   searchParams,
 }: {
-  searchParams: Promise<{ klass?: string }>;
+  searchParams: Promise<{ klass?: string; page?: string }>;
 }) {
   const user = await getCurrentUser();
   const isOwner = user ? (await getUserGroupCount(user.employeeCode)) > 0 : false;
   const mineOf = isOwner && user ? user.employeeCode : "";
-  const klass = ["A", "B", "C"].includes((await searchParams).klass ?? "") ? (await searchParams).klass! : "A";
+  const sp = await searchParams;
+  const klass = ["A", "B", "C"].includes(sp.klass ?? "") ? sp.klass! : "A";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
-  const [summary, items] = await Promise.all([
+  const [summary, itemsFetched] = await Promise.all([
     getAbcSummary(mineOf),
-    getAbcItems(mineOf, klass, 300),
+    getAbcItems(mineOf, klass, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE),
   ]);
+  const hasNext = itemsFetched.length > PAGE_SIZE;
+  const items = itemsFetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => {
+    const p = new URLSearchParams();
+    if (klass !== "A") p.set("klass", klass);
+    if (pg > 1) p.set("page", String(pg));
+    return `/abc-analysis${p.toString() ? `?${p}` : ""}`;
+  };
   const byClass = Object.fromEntries(summary.map((s) => [s.abc, s]));
 
   return (
@@ -65,7 +77,7 @@ export default async function AbcAnalysisPage({
 
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white">ສິນຄ້າ Class {klass} {items.length >= 300 ? "· ສະແດງ 300 ອັນດັບທຳອິດ" : `· ${items.length} ລາຍການ`}</h2>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">ສິນຄ້າ Class {klass} · ໜ້າ {page}</h2>
         </div>
         {items.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີຂໍ້ມູນ</p> : (
           <div className="overflow-x-auto">
@@ -83,7 +95,7 @@ export default async function AbcAnalysisPage({
               <tbody>
                 {items.map((r, i) => (
                   <tr key={r.code} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
-                    <td className="px-4 py-2 text-xs text-slate-400">{i + 1}</td>
+                    <td className="px-4 py-2 text-xs text-slate-400">{(page - 1) * PAGE_SIZE + i + 1}</td>
                     <td className="px-4 py-2 font-mono text-xs"><Link href={`/products/${encodeURIComponent(r.code)}`} className="font-semibold text-blue-700 hover:underline dark:text-blue-400">{r.code}</Link></td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-200"><span className="block max-w-xs truncate">{r.name}</span><span className="text-[10px] text-slate-400">{r.brand}</span></td>
                     <td className="px-4 py-2 text-right text-slate-600 dark:text-slate-400">{fmt(r.sale_90)}</td>
@@ -98,6 +110,7 @@ export default async function AbcAnalysisPage({
           </div>
         )}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }

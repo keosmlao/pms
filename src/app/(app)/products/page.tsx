@@ -1,4 +1,6 @@
+import { Fragment } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getFilterOptions, getProducts, getUserGroupCount, getUserGroups, type ProductFilters } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
 import FilterSelect from "./FilterSelect";
@@ -20,8 +22,16 @@ type SP = {
   brand?: string;
   in_stock?: string;
   mine?: string | string[];
+  group_by?: string;
   page?: string;
 };
+
+const GROUP_BY_OPTS = [
+  { key: "", label: "ບໍ່ຈັດກຸ່ມ" },
+  { key: "brand", label: "ຍີ່ຫໍ້" },
+  { key: "category", label: "ໝວດ" },
+  { key: "group_main", label: "ກຸ່ມຫຼັກ" },
+];
 
 export default async function ProductsPage({
   searchParams,
@@ -52,8 +62,10 @@ export default async function ProductsPage({
     brand: sp.brand ?? "",
     inStock: sp.in_stock === "1",
     mineOf: mineOn ? (user?.employeeCode ?? "") : "",
+    groupBy: GROUP_BY_OPTS.some((o) => o.key === sp.group_by) ? sp.group_by ?? "" : "",
   };
   const page = Number(sp.page ?? "1") || 1;
+  const groupBy = filters.groupBy ?? "";
 
   const [{ rows, total, page: current, totalPages }, options] = await Promise.all([
     getProducts(filters, page),
@@ -78,9 +90,29 @@ export default async function ProductsPage({
     if (filters.brand) params.set("brand", filters.brand);
     if (filters.inStock) params.set("in_stock", "1");
     if (isOwner && !mineOn) params.set("mine", "0");
+    if (groupBy) params.set("group_by", groupBy);
     params.set("page", String(p));
     return `/products?${params.toString()}`;
   };
+  // Link that keeps all current filters but swaps the group_by (page resets).
+  const groupByHref = (g: string) => {
+    const params = new URLSearchParams();
+    if (filters.q) params.set("q", filters.q);
+    if (filters.groupMain) params.set("group_main", filters.groupMain);
+    if (filters.groupSub) params.set("group_sub", filters.groupSub);
+    if (filters.groupSub2) params.set("group_sub2", filters.groupSub2);
+    if (filters.category) params.set("category", filters.category);
+    if (filters.brand) params.set("brand", filters.brand);
+    if (filters.inStock) params.set("in_stock", "1");
+    if (isOwner && !mineOn) params.set("mine", "0");
+    if (g) params.set("group_by", g);
+    return `/products${params.toString() ? `?${params}` : ""}`;
+  };
+  const groupVal = (p: (typeof rows)[number]) =>
+    groupBy === "brand" ? (p.item_brand || "— ບໍ່ລະບຸ —")
+    : groupBy === "category" ? (p.category_name || "— ບໍ່ລະບຸ —")
+    : groupBy === "group_main" ? (p.group_main_name || "— ບໍ່ລະບຸ —")
+    : "";
 
   const exportHref = (() => {
     const params = new URLSearchParams();
@@ -187,7 +219,16 @@ export default async function ProductsPage({
         </details>
       </form>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-medium text-slate-400">ຈັດກຸ່ມຕາມ:</span>
+        <div className="flex flex-wrap overflow-hidden rounded-lg border border-slate-200 text-xs font-medium dark:border-slate-800">
+          {GROUP_BY_OPTS.map((o) => (
+            <Link key={o.key} href={groupByHref(o.key)} className={`px-3 py-1.5 transition ${groupBy === o.key ? "bg-teal-600 text-white" : "bg-white text-slate-500 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"}`}>{o.label}</Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full min-w-[960px] table-fixed text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 text-left text-[10px] uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
@@ -198,20 +239,31 @@ export default async function ProductsPage({
               <th className="w-24 px-4 py-2.5 text-right font-semibold">ຄົງເຫຼືອ</th>
               <th className="w-24 px-4 py-2.5 font-semibold">ໜ່ວຍ</th>
               <th className="w-36 px-4 py-2.5 text-right font-semibold">ຕົ້ນທຶນສະເລ່ຍ</th>
+              <th className="w-28 px-4 py-2.5 text-right font-semibold">ຂາຍໜ້າຮ້ານ</th>
+              <th className="w-28 px-4 py-2.5 text-right font-semibold">ຂາຍສົ່ງ</th>
+              <th className="w-28 px-4 py-2.5 text-right font-semibold">ຕົ້ນທຶນປາກເຊ</th>
+              <th className="w-28 px-4 py-2.5 text-right font-semibold">ຕົ້ນທຶນວຽງຈັນ</th>
               <th className="w-40 px-4 py-2.5 font-semibold">ຜູ້ຮັບຜິດຊອບ</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={12} className="px-4 py-10 text-center text-slate-400">
                   ບໍ່ພົບຂໍ້ມູນສິນຄ້າ
                 </td>
               </tr>
             )}
-            {rows.map((p) => (
+            {rows.map((p, idx) => {
+              const showHeader = groupBy !== "" && (idx === 0 || groupVal(rows[idx - 1]) !== groupVal(p));
+              return (
+              <Fragment key={p.code}>
+              {showHeader && (
+                <tr className="border-y border-slate-200 bg-slate-100/80 dark:border-slate-700 dark:bg-slate-800/60">
+                  <td colSpan={12} className="px-4 py-2 text-[13px] font-bold text-slate-700 dark:text-slate-100">▸ {groupVal(p)}</td>
+                </tr>
+              )}
               <tr
-                key={p.code}
                 className="group border-b border-slate-100 last:border-0 hover:bg-teal-50/40 dark:border-slate-800 dark:hover:bg-slate-800/50"
               >
                 <td className="border-l-2 border-transparent px-4 py-2 font-mono text-xs group-hover:border-teal-400">
@@ -250,61 +302,32 @@ export default async function ProductsPage({
                 <td className="px-4 py-2 text-right font-semibold text-slate-800 dark:text-white">
                   {fmtNum(p.average_cost)}
                 </td>
+                <td className="px-4 py-2 text-right tabular-nums text-slate-700 dark:text-slate-200">
+                  {p.price_retail != null ? <>{fmtNum(p.price_retail)}<span className="ml-0.5 text-[10px] text-slate-400">{p.price_retail_cur ?? ""}</span></> : <span className="text-slate-300 dark:text-slate-600">-</span>}
+                </td>
+                <td className="px-4 py-2 text-right tabular-nums text-slate-700 dark:text-slate-200">
+                  {p.price_wholesale != null ? <>{fmtNum(p.price_wholesale)}<span className="ml-0.5 text-[10px] text-slate-400">฿</span></> : <span className="text-slate-300 dark:text-slate-600">-</span>}
+                </td>
+                <td className="px-4 py-2 text-right tabular-nums text-slate-500 dark:text-slate-400">
+                  {p.cost_pks != null ? <>{fmtNum(p.cost_pks)}<span className="ml-0.5 text-[10px] text-slate-400">฿</span></> : <span className="text-slate-300 dark:text-slate-600">-</span>}
+                </td>
+                <td className="px-4 py-2 text-right tabular-nums text-slate-500 dark:text-slate-400">
+                  {p.cost_vte != null ? <>{fmtNum(p.cost_vte)}<span className="ml-0.5 text-[10px] text-slate-400">฿</span></> : <span className="text-slate-300 dark:text-slate-600">-</span>}
+                </td>
                 <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
                   <span className="block truncate" title={p.responsible_name ?? ""}>
                     {p.responsible_name || "-"}
                   </span>
                 </td>
               </tr>
-            ))}
+              </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-slate-500 dark:text-slate-400">
-            ໜ້າ {current} / {totalPages}
-          </span>
-          <div className="flex gap-2">
-            <PageLink disabled={current <= 1} href={pageHref(current - 1)}>
-              ກ່ອນໜ້າ
-            </PageLink>
-            <PageLink disabled={current >= totalPages} href={pageHref(current + 1)}>
-              ຖັດໄປ
-            </PageLink>
-          </div>
-        </div>
-      )}
+      <Pagination current={current} totalPages={totalPages} total={total} hrefFor={pageHref} />
     </div>
-  );
-}
-
-function PageLink({
-  href,
-  disabled,
-  children,
-}: {
-  href: string;
-  disabled: boolean;
-  children: React.ReactNode;
-}) {
-  const base = "rounded-xl border px-4 py-2 font-medium transition";
-  if (disabled) {
-    return (
-      <span
-        className={`${base} cursor-not-allowed border-slate-200 text-slate-300 dark:border-slate-800 dark:text-slate-600`}
-      >
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link
-      href={href}
-      className={`${base} border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800`}
-    >
-      {children}
-    </Link>
   );
 }

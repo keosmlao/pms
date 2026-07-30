@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Pagination from "@/components/Pagination";
 import { getRecentActivity } from "@/lib/audit";
 import { getIsAdmin } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -9,10 +10,15 @@ function fmtDateTime(value: string | null): string {
   return m ? `${m[3]}-${m[2]}-${m[1]} ${m[4]}:${m[5]}` : value;
 }
 
-export default async function AuditPage() {
+export default async function AuditPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const user = await getCurrentUser();
   if (!user || !(await getIsAdmin(user.employeeCode))) redirect("/products");
-  const items = await getRecentActivity(100);
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number((await searchParams).page ?? "1") || 1);
+  const fetched = await getRecentActivity(PAGE_SIZE + 1, (page - 1) * PAGE_SIZE);
+  const hasNext = fetched.length > PAGE_SIZE;
+  const items = fetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => `/audit${pg > 1 ? `?page=${pg}` : ""}`;
 
   return (
     <div className="w-full">
@@ -65,6 +71,7 @@ export default async function AuditPage() {
           </div>
         )}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
       <p className="mt-3 text-[11px] text-slate-400">
         ໝາຍເຫດ: ສະແດງສະຖານະປັດຈຸບັນ (ການລຶບບໍ່ຖືກບັນທຶກ). ຖ້າຕ້ອງການ audit ເຕັມ ຕ້ອງມີຕາຕະລາງ log ແຍກ.
       </p>

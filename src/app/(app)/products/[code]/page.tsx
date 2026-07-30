@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProductDetail, getIsAdmin, getStockThresholds, getLifecycle, getItemSuppliers, getProductDeptStaff } from "@/lib/products";
+import { getProductDetail, getIsAdmin, getStockThresholds, getPmPrices, getLifecycle, getItemSuppliers, getProductDeptStaff } from "@/lib/products";
+import { getEditableSalePrices } from "@/lib/pricing";
+import PriceEditor from "./PriceEditor";
 import { getComments, getActivities } from "@/lib/chatter";
 import { getCurrentUser } from "@/lib/session";
 import ChatterActivities from "./ChatterActivities";
@@ -84,9 +86,11 @@ export default async function ProductDetailPage({
     getCurrentUser(),
   ]);
   if (!result) notFound();
-  const [isAdmin, thresholds, lifecycle, itemSuppliers, comments, activities, deptStaff] = await Promise.all([
+  const [isAdmin, thresholds, pmPrices, editablePrices, lifecycle, itemSuppliers, comments, activities, deptStaff] = await Promise.all([
     user ? getIsAdmin(user.employeeCode) : Promise.resolve(false),
     getStockThresholds(decodedCode),
+    getPmPrices(decodedCode),
+    getEditableSalePrices(decodedCode),
     getLifecycle(decodedCode),
     getItemSuppliers(decodedCode),
     getComments(decodedCode),
@@ -109,19 +113,8 @@ export default async function ProductDetailPage({
       : { label: `ໝົດແລ້ວ ${Math.abs(remainingDays).toLocaleString("en-US")} ວັນ`, expired: true };
   };
 
-  // Latest price per customer group (priceCells is ordered newest-first).
-  const latestByGroup = (groupCode: string, currency: "lak" | "thb"): string | null => {
-    for (const c of priceCells) {
-      if (c.group_code === groupCode) {
-        const v = currency === "lak" ? c.price_lak : c.price_thb;
-        if (v) return v;
-      }
-    }
-    return null;
-  };
-  const retailBahtLatest = latestByGroup("101", "thb");
-  const costVientianeLatest = latestByGroup("9", "lak") ?? latestByGroup("9", "thb");
-  const wholesaleLatest = latestByGroup("102", "lak") ?? latestByGroup("102", "thb");
+  // Headline price/cost — same source & logic as the products list (getPmPrices).
+  const priceField = (v: string | null, cur: string) => (v == null ? "-" : `${fmtNum(v)}${cur ? ` ${cur}` : ""}`);
 
   // Pivot price cells into rows = period, columns = customer group.
   // Column order: sales groups first (ຂາຍໜ້າຮ້ານ 101, ຂາຍສົ່ງ 102, ໂຄງການ 103),
@@ -203,9 +196,10 @@ export default async function ProductDetailPage({
             <Field label="ໜ່ວຍ" value={p.unit_standard_name} />
             <Field label="ຕົ້ນທຶນສະເລ່ຍ" value={fmtNum(p.average_cost)} />
             <Field label="ລາຄາຊື້ລ້າສຸດ" value={latestPurchase?.price ? fmtNum(latestPurchase.price) : "-"} />
-            <Field label="ຕົ້ນທຶນວຽງຈັນ ລ້າສຸດ" value={fmtNum(costVientianeLatest)} />
-            <Field label="ຂາຍໜ້າຮ້ານ (ບາດ) ລ້າສຸດ" value={fmtNum(retailBahtLatest)} />
-            <Field label="ຂາຍສົ່ງ ລ້າສຸດ" value={fmtNum(wholesaleLatest)} />
+            <Field label="ຂາຍໜ້າຮ້ານ" value={priceField(pmPrices?.price_retail ?? null, pmPrices?.price_retail_cur ?? "")} />
+            <Field label="ຂາຍສົ່ງ" value={priceField(pmPrices?.price_wholesale ?? null, "฿")} />
+            <Field label="ຕົ້ນທຶນປາກເຊ" value={priceField(pmPrices?.cost_pks ?? null, "฿")} />
+            <Field label="ຕົ້ນທຶນວຽງຈັນ" value={priceField(pmPrices?.cost_vte ?? null, "฿")} />
             <Field label="ໃບຮັບເຂົ້າລ້າສຸດ" value={latestPurchase?.doc_no || "-"} />
             <Field label="ເລກ PO" value={latestPurchase?.po_no || "-"} />
             <Field
@@ -305,6 +299,11 @@ export default async function ProductDetailPage({
         </Card>
       )}
       {isAdmin && (
+        <Card title="ຈັດການລາຄາຂາຍ (ຕໍ່ກຸ່ມລູກຄ້າ)">
+          <PriceEditor itemCode={decodedCode} prices={editablePrices} />
+        </Card>
+      )}
+      {isAdmin && (
         <Card title="ຈັດການພະລິດຕະພັນ (ສະຖານະ · ຜູ້ສະໜອງ)">
           <PmSettings itemCode={decodedCode} lifecycle={lifecycle} suppliers={itemSuppliers} />
         </Card>
@@ -348,9 +347,10 @@ export default async function ProductDetailPage({
 
       {/* Movement history */}
       <section id="movements" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">
-          ປະຫວັດເຄື່ອນໄຫວ ({movements.length})
-        </h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">ປະຫວັດເຄື່ອນໄຫວ (ລ້າສຸດ {movements.length})</h2>
+          <Link href={`/products/${encodeURIComponent(decodedCode)}/movements${wh ? `?wh=${encodeURIComponent(wh)}` : ""}`} className="text-xs font-semibold text-teal-600 hover:underline dark:text-teal-400">ເບິ່ງທັງໝົດ →</Link>
+        </div>
         {movementWarehouses.length > 1 && (
           <WarehouseFilter code={decodedCode} current={wh} options={movementWarehouses} />
         )}

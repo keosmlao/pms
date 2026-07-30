@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { countPendingApprovals, getDepartments, getEmployeeDepartment, listPurchaseOrders, PO_CURRENCIES } from "@/lib/purchase-order";
 import { getIsAdmin } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
+import Pagination from "@/components/Pagination";
 import DeptSelect from "./DeptSelect";
 import { LiveClock, ElapsedCell } from "./LiveElapsed";
 
@@ -46,7 +47,7 @@ function fmtMoney(n: string) {
 export default async function PurchaseOrderPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; view?: string; dept?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; view?: string; dept?: string; page?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -56,6 +57,8 @@ export default async function PurchaseOrderPage({
   const status = (sp.status as "all" | "pending" | "approved") ?? "all";
   const view = sp.view ?? "all"; // all | mine | mydept
   const deptParam = sp.dept ?? "";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(sp.page ?? "1") || 1);
 
   const [isAdmin, myDept, departments] = await Promise.all([
     getIsAdmin(user.employeeCode),
@@ -68,8 +71,20 @@ export default async function PurchaseOrderPage({
     ? deptParam || (view === "mydept" ? myDept : undefined)
     : myDept || undefined;
 
-  const rows = await listPurchaseOrders({ q, status, mine, dept: deptFilter || undefined, limit: 150 });
+  const fetched = await listPurchaseOrders({ q, status, mine, dept: deptFilter || undefined, limit: PAGE_SIZE + 1, offset: (page - 1) * PAGE_SIZE });
+  const hasNext = fetched.length > PAGE_SIZE;
+  const rows = fetched.slice(0, PAGE_SIZE);
   const pendingCount = isAdmin ? await countPendingApprovals() : 0;
+
+  const pageHref = (pg: number) => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (status !== "all") p.set("status", status);
+    if (view !== "all") p.set("view", view);
+    if (deptParam) p.set("dept", deptParam);
+    if (pg > 1) p.set("page", String(pg));
+    return `/purchase-order${p.toString() ? `?${p}` : ""}`;
+  };
 
   const viewTabs = isAdmin
     ? [
@@ -135,6 +150,13 @@ export default async function PurchaseOrderPage({
               </Link>
             )}
           </div>
+          <a
+            href={`/api/po-export?${new URLSearchParams({ ...(q ? { q } : {}), ...(status !== "all" ? { status } : {}), ...(view !== "all" ? { view } : {}), ...(deptParam ? { dept: deptParam } : {}) })}`}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-white px-3.5 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-500/40 dark:bg-slate-900 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></svg>
+            Excel
+          </a>
           <Link
             href="/purchase-order/new"
             className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-teal-500"
@@ -296,6 +318,7 @@ export default async function PurchaseOrderPage({
         </table>
       </div>
       </LiveClock>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }

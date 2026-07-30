@@ -12,7 +12,62 @@ export type Product = {
   category_name: string | null;
   group_main_name: string | null;
   responsible_name: string | null;
+  // Latest active price/cost from ic_inventory_price (null = no price row).
+  price_retail: string | null; // ຂາຍໜ້າຮ້ານ = ວອກອີນ
+  price_retail_cur: string | null; // '₭' | '฿' — retail can be LAK or THB
+  price_wholesale: string | null; // ຂາຍສົ່ງ = ຮ້ານຂາຍສົ່ງ (always ฿)
+  cost_vte: string | null; // ຕົ້ນທຶນວຽງຈັນ (always ฿)
+  cost_pks: string | null; // ຕົ້ນທຶນປາກເຊ (always ฿)
 };
+
+// Latest active price/cost per item, replicated from the odg_pm_price_info VIEW
+// but pulled straight from ic_inventory_price (the view also computes an expensive
+// SML stock-cost function we don't need, which makes it too slow to query live).
+// Prices key off cust_group_2 / cust_group_1 codes; "latest" = newest active
+// from_date within [from_date, to_date]. ic_code is indexed → fast per page.
+//   ວອກອີນ (retail) = cust_group_2 10101, LAK(02) then THB(01)
+//   ຮ້ານຂາຍສົ່ງ (wholesale) = cust_group_2 10201, THB, × (100−disc%)/100 if a discount row exists
+//   ຕົ້ນທຶນວຽງຈັນ = cust_group_1 9 · ຕົ້ນທຶນປາກເຊ = cust_group_1 10 (both THB)
+const PM_PRICE_LATERAL = `LEFT JOIN LATERAL (
+    SELECT
+      COALESCE(rl.lak, rl.thb)::text AS price_retail,
+      CASE WHEN rl.lak IS NOT NULL THEN '₭' WHEN rl.thb IS NOT NULL THEN '฿' END AS price_retail_cur,
+      COALESCE(
+        (SELECT p.sale_price1 FROM ic_inventory_price p
+          WHERE p.ic_code = i.code AND p.cust_group_2 = '10201'
+            AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '01' AND p.unit_code = i.unit_standard
+          ORDER BY p.from_date DESC LIMIT 1)
+        * ((SELECT 100 - left(d.discount::text, length(d.discount::text) - 1)::numeric
+             FROM ic_inventory_discount d
+            WHERE d.ic_code = i.code AND d.cust_group_2 = '10201'
+              AND CURRENT_DATE BETWEEN d.from_date AND d.to_date AND d.currency_code = '01' AND d.unit_code = i.unit_standard
+            ORDER BY d.from_date DESC LIMIT 1) / 100),
+        (SELECT p.sale_price1 FROM ic_inventory_price p
+          WHERE p.ic_code = i.code AND p.cust_group_2 = '10201'
+            AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '01' AND p.unit_code = i.unit_standard
+          ORDER BY p.from_date DESC LIMIT 1)
+      )::text AS price_wholesale,
+      (SELECT p.sale_price1 FROM ic_inventory_price p
+        WHERE p.ic_code = i.code AND p.cust_group_1 = '9'
+          AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '01'
+        ORDER BY p.from_date DESC LIMIT 1)::text AS cost_vte,
+      (SELECT p.sale_price1 FROM ic_inventory_price p
+        WHERE p.ic_code = i.code AND p.cust_group_1 = '10'
+          AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '01'
+        ORDER BY p.from_date DESC LIMIT 1)::text AS cost_pks
+    FROM (SELECT
+            (SELECT p.sale_price1 FROM ic_inventory_price p
+              WHERE p.ic_code = i.code AND p.cust_group_2 = '10101'
+                AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '02'
+              ORDER BY p.from_date DESC LIMIT 1) AS lak,
+            (SELECT p.sale_price1 FROM ic_inventory_price p
+              WHERE p.ic_code = i.code AND p.cust_group_2 = '10101'
+                AND CURRENT_DATE BETWEEN p.from_date AND p.to_date AND p.currency_code = '01'
+              ORDER BY p.from_date DESC LIMIT 1) AS thb
+         ) rl
+  ) pmp ON true`;
+// Wholesale + both costs are always THB (฿); only retail varies (₭/฿ via price_retail_cur).
+const PM_PRICE_COLS = `pmp.price_retail, pmp.price_retail_cur, pmp.price_wholesale, pmp.cost_vte, pmp.cost_pks`;
 
 export type ProductFilters = {
   q: string;
@@ -23,6 +78,15 @@ export type ProductFilters = {
   brand: string;
   inStock: boolean;
   mineOf: string; // employee_code → only products in that employee's responsible groups
+  groupBy?: string; // '' | 'brand' | 'category' | 'group_main' → sort so same-group rows are contiguous
+};
+
+// ORDER BY expression for the optional group-by (E-2 search view). Same-group rows
+// become contiguous so the page can render group headers.
+const GROUP_BY_ORDER: Record<string, string> = {
+  brand: "COALESCE(i.item_brand,'')",
+  category: "COALESCE(cat.name_1,'')",
+  group_main: "COALESCE(gm.name_1,'')",
 };
 
 export type ProductPage = {
@@ -108,12 +172,14 @@ export async function getProducts(
                FROM odg_group_responsible gr
                LEFT JOIN odg_employee re ON re.employee_code = gr.employee_code
               WHERE gr.group_main = i.group_main
-                AND (gr.group_sub = '' OR gr.group_sub = i.group_sub)) AS responsible_name
+                AND (gr.group_sub = '' OR gr.group_sub = i.group_sub)) AS responsible_name,
+            ${PM_PRICE_COLS}
        FROM ic_inventory i
        LEFT JOIN ic_category cat ON cat.code = i.item_category
        LEFT JOIN ic_group gm ON gm.code = i.group_main
+       ${PM_PRICE_LATERAL}
        ${list.sql}
-      ORDER BY i.code ASC
+      ORDER BY ${filters.groupBy && GROUP_BY_ORDER[filters.groupBy] ? `${GROUP_BY_ORDER[filters.groupBy]} ASC, ` : ""}i.code ASC
       LIMIT ${pageSize} OFFSET ${offset}`,
     list.params,
   );
@@ -135,10 +201,12 @@ export async function getProductsForExport(
                FROM odg_group_responsible gr
                LEFT JOIN odg_employee re ON re.employee_code = gr.employee_code
               WHERE gr.group_main = i.group_main
-                AND (gr.group_sub = '' OR gr.group_sub = i.group_sub)) AS responsible_name
+                AND (gr.group_sub = '' OR gr.group_sub = i.group_sub)) AS responsible_name,
+            ${PM_PRICE_COLS}
        FROM ic_inventory i
        LEFT JOIN ic_category cat ON cat.code = i.item_category
        LEFT JOIN ic_group gm ON gm.code = i.group_main
+       ${PM_PRICE_LATERAL}
        ${w.sql}
       ORDER BY i.code ASC
       LIMIT ${limit}`,
@@ -271,6 +339,23 @@ export async function searchSuppliers(q: string, limit = 20): Promise<{ code: st
     [`%${term}%`],
   );
   return rows;
+}
+
+export type PmPrices = {
+  price_retail: string | null;
+  price_retail_cur: string | null;
+  price_wholesale: string | null;
+  cost_vte: string | null;
+  cost_pks: string | null;
+};
+
+// The 4 headline price/cost figures for one item (same source as the products list).
+export async function getPmPrices(code: string): Promise<PmPrices | null> {
+  const { rows } = await pool.query<PmPrices>(
+    `SELECT ${PM_PRICE_COLS} FROM ic_inventory i ${PM_PRICE_LATERAL} WHERE i.code = $1`,
+    [code],
+  );
+  return rows[0] ?? null;
 }
 
 export type StockThresholds = { min: number | null; max: number | null };
@@ -539,6 +624,58 @@ const STOCK_DOCTYPE_CASE = `CASE d.trans_flag
     WHEN 66 THEN 'ປັບປຸງຂາດ'
     WHEN 72 THEN 'ໃບໂອນສິນຄ້າອອກ'
     ELSE 'ອື່ນໆ' END`;
+
+export async function getProductBrief(code: string): Promise<{ code: string; name: string } | null> {
+  const { rows } = await pool.query<{ code: string; name: string }>(
+    `SELECT code, COALESCE(NULLIF(name_1,''), NULLIF(name_eng_1,''), code) AS name FROM ic_inventory WHERE code = $1`,
+    [code],
+  );
+  return rows[0] ?? null;
+}
+
+// Paginated movement history for one item (same query/rule as getProductDetail's
+// preview, but with LIMIT/OFFSET) — powers the "ເບິ່ງທັງໝົດ" movements page.
+export async function getItemMovements(code: string, wh = "", limit = 50, offset = 0): Promise<Movement[]> {
+  const { rows } = await pool.query<Movement>(
+    `SELECT d.doc_date::text AS doc_date, d.doc_no,
+            ${STOCK_DOCTYPE_CASE} AS doc_type,
+            CASE WHEN d.trans_flag = ANY(${STOCK_IN_FLAGS}) THEN d.qty ELSE 0 END::text AS inqty,
+            CASE WHEN d.trans_flag = ANY(${STOCK_OUT_FLAGS}) THEN -d.qty ELSE 0 END::text AS outqty,
+            COALESCE(w.name_1, '') AS wh_name,
+            COALESCE(d.unit_code, '') AS unit_code,
+            (CASE WHEN h.currency_code = '02' THEN COALESCE(d.sum_amount_2, 0) ELSE COALESCE(d.sum_amount, 0) END)::text AS amount,
+            COALESCE(h.currency_code, '') AS currency_code
+       FROM ic_trans_detail d
+       LEFT JOIN ic_warehouse w ON w.code = d.wh_code
+       LEFT JOIN ic_trans h ON h.doc_no = d.doc_no AND h.trans_flag = d.trans_flag
+      WHERE d.item_code = $1 AND d.last_status = 0
+        AND d.trans_flag = ANY(${STOCK_ALL_FLAGS})
+        AND ($2 = '' OR d.wh_code = $2)
+      ORDER BY d.doc_date DESC NULLS LAST, d.doc_no DESC,
+               (CASE WHEN d.trans_flag = ANY(${STOCK_OUT_FLAGS}) THEN 1 ELSE 0 END)
+      LIMIT ${Math.min(limit, 20000)} OFFSET ${Math.max(0, offset)}`,
+    [code, wh],
+  );
+  return rows;
+}
+
+// All movements for export (higher cap than the paginated view).
+export function getItemMovementsForExport(code: string, wh = "", limit = 20000): Promise<Movement[]> {
+  return getItemMovements(code, wh, limit, 0);
+}
+
+export async function getItemMovementWarehouses(code: string): Promise<{ warehouse: string; wh_name: string }[]> {
+  const { rows } = await pool.query<{ warehouse: string; wh_name: string }>(
+    `SELECT DISTINCT d.wh_code AS warehouse, COALESCE(w.name_1, '') AS wh_name
+       FROM ic_trans_detail d
+       LEFT JOIN ic_warehouse w ON w.code = d.wh_code
+      WHERE d.item_code = $1 AND d.last_status = 0
+        AND d.trans_flag = ANY(${STOCK_ALL_FLAGS})
+      ORDER BY d.wh_code`,
+    [code],
+  );
+  return rows;
+}
 
 export async function getProductDetail(
   code: string,

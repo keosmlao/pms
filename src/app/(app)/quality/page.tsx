@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getGapProducts, getQualityGaps } from "@/lib/analytics";
 import { getUserGroupCount } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
@@ -14,15 +15,20 @@ function Tile({ label, value, total, tone }: { label: string; value: number; tot
   );
 }
 
-export default async function QualityPage() {
+export default async function QualityPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const user = await getCurrentUser();
   const isOwner = user ? (await getUserGroupCount(user.employeeCode)) > 0 : false;
   const mineOf = isOwner && user ? user.employeeCode : "";
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number((await searchParams).page ?? "1") || 1);
 
-  const [gaps, products] = await Promise.all([
+  const [gaps, productsFetched] = await Promise.all([
     getQualityGaps(mineOf),
-    getGapProducts(mineOf, 100),
+    getGapProducts(mineOf, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE),
   ]);
+  const hasNext = productsFetched.length > PAGE_SIZE;
+  const products = productsFetched.slice(0, PAGE_SIZE);
+  const pageHref = (pg: number) => `/quality${pg > 1 ? `?page=${pg}` : ""}`;
 
   return (
     <div className="w-full">
@@ -82,6 +88,7 @@ export default async function QualityPage() {
           </div>
         )}
       </div>
+      <Pagination current={page} hasNext={hasNext} hrefFor={pageHref} />
     </div>
   );
 }
