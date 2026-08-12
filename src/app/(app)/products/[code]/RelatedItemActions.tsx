@@ -79,7 +79,7 @@ export default function RelatedItemActions({
             autoComplete="off"
             defaultValue={relatedCode}
             aria-label="ລະຫັດໃໝ່"
-            className="min-h-9 w-36 rounded-lg border border-slate-200 bg-white px-2 font-mono text-xs text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="min-h-9 w-36 rounded-lg glass px-2 font-mono text-xs text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
           <SaveButton />
         </form>

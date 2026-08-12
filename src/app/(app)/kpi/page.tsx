@@ -19,7 +19,7 @@ export default async function KpiPage() {
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">ຜົນງານ ຕໍ່ຜູ້ຮັບຜິດຊອບ</h1>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ຍອດຂາຍ 90 ວັນ, ມູນຄ່າ stock ແລະ ສິນຄ້າຄ້າງດົນ ຕໍ່ພະນັກງານພະແນກພະລິດຕະພັນ</p>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 overflow-hidden rounded-xl glass shadow-sm">
         {staff.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ຍັງບໍ່ໄດ້ກຳນົດຜູ້ຮັບຜິດຊອບ</p> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-xs">

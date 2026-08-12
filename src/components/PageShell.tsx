@@ -43,7 +43,7 @@ export function MetricCard({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="glass rounded-xl p-4">
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
       <p className={`mt-2 text-2xl font-bold tracking-tight ${valueClassName}`}>{value}</p>
       {note ? <p className="mt-1 text-[10px] text-slate-400">{note}</p> : null}

@@ -21,7 +21,7 @@ export default function ClaimProcess({ serialNo }: { serialNo: string }) {
     <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-lg border border-teal-200 px-3 py-1.5 text-[10px] font-bold text-teal-700 transition hover:bg-teal-50 dark:border-teal-800 dark:text-teal-300 dark:hover:bg-teal-950">{open ? "ຍົກເລີກ" : "ເລີ່ມ Process ເຄມ"}</button>
     {open && <form action={action} className="mt-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-950">
       <input type="hidden" name="serial_no" value={serialNo} />
-      <textarea name="claim_note" required rows={2} defaultValue="ເອົາໄປເຄມແລ້ວ" aria-label="ໝາຍເຫດເຄມ" className="w-full resize-none rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[11px] text-slate-800 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
+      <textarea name="claim_note" required rows={2} defaultValue="ເອົາໄປເຄມແລ້ວ" aria-label="ໝາຍເຫດເຄມ" className="w-full resize-none rounded-md glass px-2 py-1.5 text-[11px] text-slate-800 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
       <SubmitButton />
       {state.error && <p className="text-[10px] text-red-600">{state.error}</p>}
     </form>}

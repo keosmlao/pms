@@ -13,14 +13,14 @@ export default function AppLoading() {
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-24 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div key={index} className="h-24 rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <Line className="h-3 w-24" />
             <Line className="mt-4 h-6 w-32" />
           </div>
         ))}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="flex h-14 items-center justify-between border-b border-slate-200 px-5 dark:border-slate-800">
           <Line className="h-4 w-40" />
           <Line className="h-8 w-24 rounded-lg" />

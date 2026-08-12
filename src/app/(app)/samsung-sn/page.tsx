@@ -51,14 +51,14 @@ export default async function SamsungSnPage({ searchParams }: { searchParams: Pr
 
       {summary.claimed_unmatched > 0 && <p className="mt-2 text-[10px] text-slate-400">ມີ {summary.claimed_unmatched.toLocaleString("en-US")} SN ທີ່ເຄມແລ້ວ ແຕ່ບໍ່ພົບ SN ກົງກັນໃນສາງ.</p>}
 
-      <form className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row" method="GET">
+      <form className="mt-4 flex flex-col gap-3 rounded-xl glass p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row" method="GET">
         <input type="hidden" name="status" value={status} />
         <input name="q" defaultValue={query} placeholder="ຄົ້ນຫາ SN, ລະຫັດ, ຊື່, Model, ໃບຂາຍ ຫຼືໝາຍເຫດເຄມ..." className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus:border-teal-400 focus:bg-white dark:border-slate-700 dark:bg-slate-950" />
         <button className="min-h-10 rounded-lg bg-teal-600 px-5 text-xs font-bold text-white hover:bg-teal-500" type="submit">ຄົ້ນຫາ</button>
         <Link href="/samsung-sn" className="grid min-h-10 place-items-center rounded-lg border border-slate-200 px-4 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:border-slate-700">ລ້າງ</Link>
       </form>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ລາຍການ SN</h2><span className="text-[11px] text-slate-400">ສະແດງ {serials.length} ລາຍການ</span></div>
         {serials.length === 0 ? <p className="px-5 py-12 text-center text-xs text-slate-400">ບໍ່ພົບລາຍການ</p> : <div className="overflow-x-auto"><table className="w-full min-w-[1340px] text-xs">
           <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-[10px] text-slate-500 dark:border-slate-800 dark:bg-slate-950/40"><th className="px-4 py-2.5 font-semibold">SN</th><th className="px-4 py-2.5 font-semibold">ສິນຄ້າ / MODEL</th><th className="px-4 py-2.5 font-semibold">ເຄມ</th><th className="px-4 py-2.5 font-semibold">ຂາຍ / ສາງ</th><th className="px-4 py-2.5 font-semibold">ສາງ</th><th className="px-4 py-2.5 font-semibold">RACK / LOCATION</th><th className="px-4 py-2.5 font-semibold">ວັນທີ / ໃບຂາຍ</th>{isAdmin && <th className="px-4 py-2.5 font-semibold">PROCESS</th>}</tr></thead>

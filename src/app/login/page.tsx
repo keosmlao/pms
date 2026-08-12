@@ -23,25 +23,26 @@ export default function LoginPage() {
   const [state, formAction] = useActionState(login, initialState);
 
   return (
-    <main className="grid min-h-screen bg-slate-950 lg:grid-cols-[1.15fr_0.85fr]">
+    <main className="grid min-h-screen bg-gradient-to-br from-[#03294f] via-brand-navy to-[#021d3a] lg:grid-cols-[1.15fr_0.85fr]">
       <section className="relative hidden overflow-hidden p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-teal-500/20 blur-3xl" />
+        <div className="absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-brand-sky/20 blur-3xl" />
+        <div className="absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-brand-orange/15 blur-3xl" />
         <div className="absolute -right-32 -top-24 h-80 w-80 rounded-full border-[64px] border-white/[0.03]" />
         <div className="relative flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-xl bg-teal-500 font-black shadow-xl shadow-teal-950/20">OD</span>
-          <div><p className="font-bold">ODIEN GROUP</p><p className="text-xs tracking-[0.18em] text-slate-400">PRODUCT CENTER</p></div>
+          <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-brand-sky to-brand-blue font-black shadow-xl shadow-black/30">OD</span>
+          <div><p className="font-bold">ODIEN GROUP</p><p className="text-xs tracking-[0.18em] text-brand-sky/70">PRODUCT CENTER</p></div>
         </div>
         <div className="relative max-w-xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-400">One source of product truth</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-sky">One source of product truth</p>
           <h1 className="mt-4 text-5xl font-bold leading-[1.15] tracking-tight">ຂໍ້ມູນສິນຄ້າ<br />ທີ່ພ້ອມໃຫ້ທຸກຄົນ</h1>
           <p className="mt-5 max-w-md text-base leading-8 text-slate-300">ຄົ້ນຫາສິນຄ້າ, ກວດລາຄາ, stock ແລະ ປະຫວັດເຄື່ອນໄຫວໄດ້ໃນບ່ອນດຽວ</p>
         </div>
         <p className="relative text-xs text-slate-500">© ODIEN GROUP · Internal workspace</p>
       </section>
-      <section className="flex items-center justify-center bg-[#f6f7f9] p-5 sm:p-10 dark:bg-slate-900">
-      <div className="w-full max-w-md rounded-xl border border-white bg-white p-7 shadow-2xl shadow-slate-950/10 sm:p-10 dark:border-slate-800 dark:bg-slate-950">
+      <section className="flex items-center justify-center bg-[#eaf3fb] p-5 sm:p-10 dark:bg-[#062338]">
+      <div className="glass-heavy w-full max-w-md rounded-2xl p-7 shadow-2xl shadow-brand-navy/10 sm:p-10">
         <div className="flex items-center gap-3 lg:hidden">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-500 text-sm font-black text-white">OD</span>
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-brand-sky to-brand-blue text-sm font-black text-white">OD</span>
           <p className="font-bold text-slate-950 dark:text-white">ODIEN GROUP</p>
         </div>
         <p className="mt-8 text-xs font-bold uppercase tracking-[0.18em] text-teal-600 lg:mt-0">Welcome back</p>

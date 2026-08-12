@@ -56,16 +56,16 @@ export default async function PurchasePlanPage({
         </div>
         <div className="flex gap-2">
           <Link href="/purchase-plan/weekly" className="rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-500">📅 ແຜນລາຍອາທິດ</Link>
-          <a href={`/api/purchase-plan/export?status=${status}`} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">⬇ ດາວໂຫຼດ CSV</a>
+          <a href={`/api/purchase-plan/export?status=${status}`} className="rounded-lg glass px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">⬇ ດາວໂຫຼດ CSV</a>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">ເພີ່ມລາຍການ</h2>
         <AddPlanForm />
       </div>
 
-      <div className="mt-5 inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs dark:border-slate-700 dark:bg-slate-900">
+      <div className="mt-5 inline-flex rounded-lg glass p-0.5 text-xs dark:border-slate-700 dark:bg-slate-900">
         <Link href="/purchase-plan?status=planned" className={`rounded-md px-3 py-1.5 font-semibold ${status === "planned" ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>ວາງແຜນ · {planned}</Link>
         <Link href="/purchase-plan?status=ordered" className={`rounded-md px-3 py-1.5 font-semibold ${status === "ordered" ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>ສັ່ງແລ້ວ · {ordered}</Link>
       </div>
@@ -77,7 +77,7 @@ export default async function PurchasePlanPage({
           {groups.map((g) => {
             const totalQty = g.rows.reduce((s, r) => s + Number(r.plan_qty || 0), 0);
             return (
-              <div key={g.key} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div key={g.key} className="overflow-hidden rounded-xl glass shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/70 px-5 py-3 dark:border-slate-800 dark:bg-slate-950/40">
                   <h2 className="text-sm font-bold text-slate-900 dark:text-white">{g.name} <span className="font-mono text-[10px] font-normal text-slate-400">{g.key !== "—" ? g.key : ""}</span></h2>
                   <span className="text-xs text-slate-500">{g.rows.length} ລາຍການ · ລວມ {fmt(totalQty)}</span>

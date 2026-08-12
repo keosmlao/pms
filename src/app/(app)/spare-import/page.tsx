@@ -20,10 +20,10 @@ export default async function SpareImportPage() {
       </p>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-xl glass p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <SpareImportForm />
         </div>
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <aside className="h-fit rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-xs font-bold text-slate-900 dark:text-white">ຮູບແບບຂໍ້ມູນ</p>
           <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">ກວດລະຫັດອາໄຫຼ່, ລຸ້ນທີ່ຮອງຮັບ ແລະຈຳນວນໃຫ້ຄົບກ່ອນນຳເຂົ້າ.</p>
         </aside>

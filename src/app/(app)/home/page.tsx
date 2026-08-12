@@ -25,7 +25,7 @@ const KPI_STYLE = {
 function KpiCard({ label, value, note, tone }: { label: string; value: number; note: string; tone: keyof typeof KPI_STYLE }) {
   const style = KPI_STYLE[tone];
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
@@ -137,7 +137,7 @@ export default async function HomePage({
       </div>
 
       <div className="mt-4 grid items-start gap-4 xl:grid-cols-[1.45fr_0.75fr]">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="overflow-hidden rounded-xl glass shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div><h2 className="text-sm font-bold text-slate-900 dark:text-white">ການເຄື່ອນໄຫວ 7 ວັນ</h2><p className="mt-1 text-[11px] text-slate-400">ຍອດຕົ້ນມື້, ຮັບ, ຈ່າຍ ແລະປິດທ້າຍມື້</p></div>
             <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${net >= 0 ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950" : "bg-red-50 text-red-700 dark:bg-red-950"}`}>ສຸດທິມື້ນີ້ {net >= 0 ? "+" : ""}{fmt(net)}</span>
@@ -160,7 +160,7 @@ export default async function HomePage({
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="overflow-hidden rounded-xl glass shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ເຄື່ອນໄຫວສູງສຸດມື້ນີ້</h2><p className="mt-1 text-[11px] text-slate-400">ຈັດອັນດັບຕາມຈຳນວນຮັບ–ຈ່າຍ</p></div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {stock.topMovers.length === 0 ? <p className="px-5 py-8 text-center text-xs text-slate-400">ມື້ນີ້ຍັງບໍ່ມີການເຄື່ອນໄຫວ</p> : stock.topMovers.map((item) => (
@@ -172,7 +172,7 @@ export default async function HomePage({
         </section>
       </div>
 
-      <section className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div><h2 className="text-sm font-bold text-slate-900 dark:text-white">ການເຄື່ອນໄຫວແຍກຕາມໝວດ</h2><p className="mt-1 text-[11px] text-slate-400">ສະເພາະໝວດທີ່ມີການຮັບ ຫຼື ຈ່າຍໃນມື້ນີ້</p></div>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{stock.categoryMovements.length} ໝວດ</span>
@@ -260,9 +260,9 @@ export default async function HomePage({
       </section>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <Link href="/products" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">□ ຄັງຂໍ້ມູນສິນຄ້າ <span className="float-right text-teal-600">→</span></Link>
-        <Link href="/products?in_stock=1" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">■ ສິນຄ້າທີ່ມີ stock <span className="float-right text-teal-600">→</span></Link>
-        <Link href="/products" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">↕ ກວດການເຄື່ອນໄຫວ <span className="float-right text-teal-600">→</span></Link>
+        <Link href="/products" className="rounded-xl glass p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">□ ຄັງຂໍ້ມູນສິນຄ້າ <span className="float-right text-teal-600">→</span></Link>
+        <Link href="/products?in_stock=1" className="rounded-xl glass p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">■ ສິນຄ້າທີ່ມີ stock <span className="float-right text-teal-600">→</span></Link>
+        <Link href="/products" className="rounded-xl glass p-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-white">↕ ກວດການເຄື່ອນໄຫວ <span className="float-right text-teal-600">→</span></Link>
       </div>
     </div>
   );

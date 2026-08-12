@@ -45,7 +45,7 @@ function imageSrc(img: { url_image: string; image_base64: string }): string | nu
 
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
       <p className="mt-1.5 text-lg font-bold tracking-tight text-slate-900 dark:text-white">{value}</p>
       {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
@@ -64,7 +64,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+    <section className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
       <h2 className="mb-4 border-b border-slate-100 pb-3 text-sm font-bold text-slate-900 dark:border-slate-800 dark:text-white">{title}</h2>
       {children}
     </section>
@@ -346,7 +346,7 @@ export default async function ProductDetailPage({
       </Card>
 
       {/* Movement history */}
-      <section id="movements" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+      <section id="movements" className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">ປະຫວັດເຄື່ອນໄຫວ (ລ້າສຸດ {movements.length})</h2>
           <Link href={`/products/${encodeURIComponent(decodedCode)}/movements${wh ? `?wh=${encodeURIComponent(wh)}` : ""}`} className="text-xs font-semibold text-teal-600 hover:underline dark:text-teal-400">ເບິ່ງທັງໝົດ →</Link>
@@ -629,7 +629,7 @@ export default async function ProductDetailPage({
       </Link>
 
       {/* Hero */}
-      <div className="relative mt-4 flex flex-col gap-5 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center">
+      <div className="relative mt-4 flex flex-col gap-5 overflow-hidden rounded-xl glass p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6 lg:flex-row lg:items-center">
         <div className="absolute bottom-0 left-0 top-0 w-1 bg-teal-500" />
         <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950">
           {cover ? (

@@ -28,7 +28,7 @@ const selectClassNames = {
   clearIndicator: () => "px-1",
   indicatorSeparator: () => "bg-slate-200 dark:bg-slate-700",
   menu: () =>
-    "mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900",
+    "mt-1 overflow-hidden rounded-lg glass shadow-lg dark:border-slate-700 dark:bg-slate-900",
   menuList: () => "max-h-60 py-1",
   option: ({ isFocused, isSelected }: { isFocused: boolean; isSelected: boolean }) =>
     [
@@ -149,7 +149,7 @@ export default function StaffGroupManager({
   return (
     <div className="space-y-4">
       {staff.map((s) => (
-        <div key={s.employee_code} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+        <div key={s.employee_code} className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="font-bold text-slate-900 dark:text-white">

@@ -21,7 +21,7 @@ export default function Loading() {
       </div>
 
       {/* Tab bar */}
-      <div className="mt-5 h-12 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" />
+      <div className="mt-5 h-12 rounded-xl glass" />
 
       {/* Content cards */}
       <div className="mt-5 grid gap-5 xl:grid-cols-3">

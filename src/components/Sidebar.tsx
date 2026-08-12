@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useState } from "react";
 
+// Grouped by the job being done, not by who may see it — admin-only entries sit
+// with the work they belong to and drop out for everyone else.
 const NAV_GROUPS = [
   {
     title: "ພາບລວມ",
@@ -51,6 +53,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    title: "ລູກຄ້າ & ການຕະຫຼາດ",
+    items: [
+      // Admins plus anyone assigned a BU / channel / product group — the page
+      // scopes itself to whatever that person is responsible for.
+      { href: "/loyalty", label: "ບໍລິຫານແຕ້ມສະສົມ", icon: StarIcon, adminOnly: true, orResponsible: true },
+    ],
+  },
+  {
     title: "ບໍລິຫານ",
     items: [
       { href: "/kpi", label: "ຜົນງານທີມ", icon: ChartIcon, adminOnly: true },
@@ -78,6 +88,10 @@ function CheckIcon({ className }: { className?: string }) {
 }
 function AlertIcon({ className }: { className?: string }) {
   return (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><path d="M12 9v4M12 17h.01" /></svg>);
+}
+
+function StarIcon({ className }: { className?: string }) {
+  return (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.8l6.5-.9z" /></svg>);
 }
 
 function ImportIcon({ className }: { className?: string }) {
@@ -171,7 +185,13 @@ function UsersIcon({ className }: { className?: string }) {
   );
 }
 
-export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function Sidebar({
+  isAdmin = false,
+  isResponsible = false,
+}: {
+  isAdmin?: boolean;
+  isResponsible?: boolean;
+}) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
   const term = query.trim().toLowerCase();
@@ -180,35 +200,39 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const activeHref = NAV_GROUPS.flatMap((g) => g.items)
     .filter((it) => pathname === it.href || pathname.startsWith(`${it.href}/`))
     .reduce<string | null>((best, it) => (best && best.length >= it.href.length ? best : it.href), null);
+  // Groups that end up empty (permissions or the search box) are dropped so no
+  // stray heading is left hanging over nothing.
   const visibleGroups = NAV_GROUPS.map((group) => ({
     ...group,
     items: group.items.filter(
       (item) =>
-        (!item.adminOnly || isAdmin) &&
+        (!item.adminOnly || isAdmin || ("orResponsible" in item && item.orResponsible && isResponsible)) &&
         item.label.toLowerCase().includes(term),
     ),
   })).filter((group) => group.items.length > 0);
 
   return (
-    <aside className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-[#050a1a]/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(2,6,23,0.18)] backdrop-blur-xl md:sticky md:top-0 md:h-screen md:w-[244px] md:shrink-0 md:self-start md:flex-col md:border-r md:border-t-0 md:border-[#182036] md:px-0 md:py-0 md:shadow-none">
-      <div className="hidden h-[68px] items-center justify-between border-b border-[#182036] px-4 md:flex">
+    <aside className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-brand-navy/95 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,50,96,0.28)] backdrop-blur-xl md:sticky md:top-0 md:h-screen md:w-[244px] md:shrink-0 md:self-start md:flex-col md:border-r md:border-t-0 md:border-white/10 md:bg-gradient-to-b md:from-[#03294f] md:via-brand-navy md:to-[#021d3a] md:px-0 md:py-0 md:shadow-none">
+      <div className="hidden h-[68px] items-center justify-between border-b border-white/10 px-4 md:flex">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-500 text-sm font-black text-white shadow-lg shadow-teal-950/30">OD</span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-sky to-brand-blue text-sm font-black text-white shadow-lg shadow-black/30">OD</span>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-wide text-white">ODIEN GROUP</p>
-            <p className="text-[10px] text-slate-500">PRODUCT MANAGEMENT</p>
+            <p className="text-[10px] text-brand-sky/70">PRODUCT MANAGEMENT</p>
           </div>
         </div>
-        <span className="grid h-6 w-6 place-items-center rounded border border-slate-700 text-[10px] text-slate-500">‹</span>
+        <span className="grid h-6 w-6 place-items-center rounded border border-white/20 text-[10px] text-slate-400">‹</span>
       </div>
 
       <div className="hidden px-4 pt-5 md:block">
-        <label className="flex h-10 items-center gap-2 rounded-xl border border-[#20283d] bg-[#0d1325] px-3 text-xs text-slate-500 focus-within:border-teal-500/70">
+        <label className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-slate-400 focus-within:border-brand-sky/70">
           <span className="text-base" aria-hidden="true">⌕</span>
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ຄົ້ນຫາເມນູ..." className="min-w-0 flex-1 bg-transparent text-xs text-slate-300 outline-none placeholder:text-slate-600" />
         </label>
       </div>
 
+      {/* Desktop is a vertical list with headings; on mobile the same links
+          become one horizontal strip, where headings would only cost space. */}
       <nav aria-label="ເມນູຫຼັກ" className="flex w-full gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-y-auto md:px-3 md:pt-4">
         {visibleGroups.map((group, groupIndex) => (
           <Fragment key={group.title}>
@@ -238,14 +262,17 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             })}
           </Fragment>
         ))}
+        {visibleGroups.length === 0 && (
+          <p className="hidden px-3 py-6 text-center text-xs text-slate-600 md:block">ບໍ່ພົບເມນູ</p>
+        )}
       </nav>
 
-      <div className="mx-4 mb-4 hidden border-t border-[#182036] pt-4 md:block">
+      <div className="mx-4 mb-4 hidden border-t border-white/10 pt-4 md:block">
         <div className="flex items-center gap-3 rounded-xl px-2 py-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-500/15 text-xs font-bold text-teal-300">PC</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-sky/15 text-xs font-bold text-brand-sky">PC</span>
           <div>
-            <p className="text-xs font-semibold text-slate-300">Product Center</p>
-            <p className="text-[10px] text-slate-600">Internal workspace</p>
+            <p className="text-xs font-semibold text-slate-200">Product Center</p>
+            <p className="text-[10px] text-slate-400">Internal workspace</p>
           </div>
         </div>
       </div>

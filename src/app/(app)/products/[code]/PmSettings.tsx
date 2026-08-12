@@ -60,7 +60,7 @@ export default function PmSettings({
         <select
           name="status"
           defaultValue={lifecycle?.status ?? ""}
-          className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="min-h-9 rounded-lg glass px-3 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         >
           <option value="">— ບໍ່ກຳນົດ —</option>
           {LIFECYCLE_OPTIONS.map((o) => (
@@ -110,7 +110,7 @@ export default function PmSettings({
                 placeholder: () => "text-slate-400",
                 input: () => "text-slate-900 dark:text-white",
                 singleValue: () => "text-slate-900 dark:text-white",
-                menu: () => "mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900",
+                menu: () => "mt-1 overflow-hidden rounded-lg glass shadow-lg dark:border-slate-700 dark:bg-slate-900",
                 menuList: () => "max-h-60 py-1",
                 option: ({ isFocused }: { isFocused: boolean }) => ["cursor-pointer px-3 py-2 text-sm", isFocused ? "bg-slate-100 dark:bg-slate-800" : "text-slate-700 dark:text-slate-300"].join(" "),
               }}

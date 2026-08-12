@@ -48,7 +48,7 @@ export default function ProductSearchSelect({
         clearIndicator: () => "px-1 hover:text-slate-600 dark:hover:text-slate-200",
         indicatorSeparator: () => "bg-slate-200 dark:bg-slate-700",
         menu: () =>
-          "mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900",
+          "mt-1 overflow-hidden rounded-lg glass shadow-lg dark:border-slate-700 dark:bg-slate-900",
         menuList: () => "max-h-72 py-1",
         option: ({ isFocused, isSelected }) =>
           [

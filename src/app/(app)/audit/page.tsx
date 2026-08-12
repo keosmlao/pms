@@ -30,7 +30,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
         ການກຳນົດຜູ້ຮັບຜິດຊອບ ແລະ ການຜູກອາໄຫຼ່ · 100 ລາຍການລ້າສຸດ
       </p>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 overflow-hidden rounded-xl glass shadow-sm">
         {items.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-slate-400">ຍັງບໍ່ມີກິດຈະກຳ</p>
         ) : (

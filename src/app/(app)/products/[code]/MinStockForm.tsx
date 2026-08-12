@@ -50,7 +50,7 @@ export default function MinStockForm({
           min={0}
           step="1"
           placeholder="min"
-          className="min-h-9 w-28 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="min-h-9 w-28 rounded-lg glass px-3 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         />
       </label>
       <label className="flex flex-col gap-1">
@@ -62,7 +62,7 @@ export default function MinStockForm({
           min={0}
           step="1"
           placeholder="max"
-          className="min-h-9 w-28 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="min-h-9 w-28 rounded-lg glass px-3 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         />
       </label>
       <SaveButton />

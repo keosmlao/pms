@@ -105,7 +105,7 @@ export default async function ProcurementPage({
         </div>
       )}
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 overflow-hidden rounded-xl glass shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-3 dark:border-slate-800">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white">ແນະນຳສັ່ງຊື້ (stock &lt; 1.5 ເດືອນ) · {reorder.length}</h2>
           <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
@@ -118,7 +118,7 @@ export default async function ProcurementPage({
             </div>
             {isAdmin && (
               <div className="flex items-center gap-1"><span>ພຽງພໍ:</span>
-                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-950">
+                <div className="inline-flex rounded-lg glass p-0.5 dark:border-slate-700 dark:bg-slate-950">
                   {COVER_OPTIONS.map((c) => (
                     <Link key={c} href={mkUrl({ cover: String(c), page: "" })} className={`rounded-md px-2 py-0.5 font-semibold ${cover === c ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>{c} ດ.</Link>
                   ))}
@@ -173,7 +173,7 @@ export default async function ProcurementPage({
       <Pagination current={page} hasNext={reorderHasNext} hrefFor={pageHref} />
 
       {isAdmin && (
-        <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
           <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ຜູ້ສະໜອງ ຕາມມູນຄ່າຊື້ (180 ວັນ) · {suppliers.length}</h2></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-xs">

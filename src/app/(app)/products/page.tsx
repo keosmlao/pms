@@ -139,11 +139,11 @@ export default async function ProductsPage({
         <div className="flex w-fit items-center gap-3">
           <a
             href={exportHref}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg glass px-4 text-xs font-bold text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
           >
             ⬇ Export CSV
           </a>
-          <div className="inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="inline-flex items-center gap-3 rounded-lg glass px-4 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-50 text-base text-teal-600 dark:bg-teal-950">□</span>
             <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">ພົບທັງໝົດ</p><p className="text-lg font-bold text-slate-950 dark:text-white">{total.toLocaleString("en-US")} <span className="text-xs font-normal text-slate-400">ລາຍການ</span></p></div>
           </div>
@@ -152,7 +152,7 @@ export default async function ProductsPage({
 
       <form
         method="GET"
-        className="mt-5 overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+        className="mt-5 overflow-visible rounded-xl glass shadow-sm"
       >
         <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
           <label className="relative min-w-0 flex-1">
@@ -213,7 +213,7 @@ export default async function ProductsPage({
               )}
             </div>
             <div className="mt-4 flex justify-end">
-              <button type="submit" className="rounded-lg bg-slate-900 px-5 py-2 text-xs font-bold text-white transition hover:bg-slate-700 dark:bg-teal-600 dark:hover:bg-teal-500">ນຳໃຊ້ຕົວກອງ</button>
+              <button type="submit" className="rounded-lg bg-brand-navy px-5 py-2 text-xs font-bold text-white transition hover:bg-brand-blue">ນຳໃຊ້ຕົວກອງ</button>
             </div>
           </div>
         </details>
@@ -228,7 +228,7 @@ export default async function ProductsPage({
         </div>
       </div>
 
-      <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-3 overflow-x-auto rounded-xl glass shadow-sm">
         <table className="w-full min-w-[960px] table-fixed text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 text-left text-[10px] uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">

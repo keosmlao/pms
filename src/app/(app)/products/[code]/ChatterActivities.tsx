@@ -46,11 +46,11 @@ export default function ChatterActivities({
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       {/* Chatter */}
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+      <section className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
         <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">ສົນທະນາ / ບັນທຶກ ({comments.length})</h2>
         <form action={commentAction} className="flex flex-col gap-2">
           <input type="hidden" name="item_code" value={itemCode} />
-          <textarea name="body" rows={2} required placeholder="ຂຽນຂໍ້ຄວາມ..." className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+          <textarea name="body" rows={2} required placeholder="ຂຽນຂໍ້ຄວາມ..." className="w-full rounded-lg glass p-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
           <div className="flex justify-end"><PostBtn idle="ໂພສ" /></div>
         </form>
         <div className="mt-3 space-y-3">
@@ -76,17 +76,17 @@ export default function ChatterActivities({
       </section>
 
       {/* Activities */}
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+      <section className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
         <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">ວຽກ / ຕິດຕາມ ({openCount} ຄ້າງ)</h2>
         <form action={activityAction} className="space-y-2">
           <input type="hidden" name="item_code" value={itemCode} />
-          <input name="title" required placeholder="ຫົວຂໍ້ວຽກ (ເຊັ່ນ: ຕິດຕໍ່ຜູ້ສະໜອງ)" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+          <input name="title" required placeholder="ຫົວຂໍ້ວຽກ (ເຊັ່ນ: ຕິດຕໍ່ຜູ້ສະໜອງ)" className="w-full rounded-lg glass px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
           <div className="flex flex-wrap gap-2">
-            <select name="assignee" className="min-h-9 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+            <select name="assignee" className="min-h-9 flex-1 rounded-lg glass px-2 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white">
               <option value="">— ມອບໝາຍໃຫ້ (ບໍ່ບັງຄັບ) —</option>
               {staff.map((s) => <option key={s.employee_code} value={s.employee_code}>{s.fullname}</option>)}
             </select>
-            <input type="date" name="due_date" className="min-h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+            <input type="date" name="due_date" className="min-h-9 rounded-lg glass px-2 text-sm text-slate-900 outline-none focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
             <PostBtn idle="ເພີ່ມ" />
           </div>
           {actState.success && <p className="text-xs text-emerald-700 dark:text-emerald-400">{actState.success}</p>}

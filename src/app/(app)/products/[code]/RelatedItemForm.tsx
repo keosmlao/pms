@@ -57,7 +57,7 @@ function AddRelationModal({
       }}
       className="m-auto w-[min(92vw,680px)] rounded-xl bg-transparent p-0 text-left text-slate-900 shadow-2xl backdrop:bg-slate-950/55 backdrop:backdrop-blur-[2px] dark:text-white"
     >
-      <div className="overflow-visible rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+      <div className="overflow-visible rounded-xl glass shadow-2xl dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">{title}</h3>

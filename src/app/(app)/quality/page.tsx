@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/session";
 function Tile({ label, value, total, tone }: { label: string; value: number; total: number; tone: string }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
       <p className={`mt-2 text-2xl font-bold tracking-tight ${tone}`}>{value.toLocaleString("en-US")}</p>
       <p className="mt-1 text-[10px] text-slate-400">{pct}% ຂອງ {total.toLocaleString("en-US")} ລາຍການ</p>
@@ -47,7 +47,7 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
         <Tile label="ຂາດຍີ່ຫໍ້" value={gaps.no_brand} total={gaps.total} tone="text-teal-600 dark:text-teal-400" />
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 overflow-hidden rounded-xl glass shadow-sm">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white">
             ສິນຄ້າ (ມີ stock) ທີ່ຂໍ້ມູນບໍ່ຄົບ · {products.length} ລາຍການ

@@ -41,13 +41,13 @@ export default async function StockHealthPage({ searchParams }: { searchParams: 
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ອາຍຸ stock ແລະ ສິນຄ້າຄ້າງດົນ {isOwner ? "· ສະເພາະກຸ່ມທ່ານ" : ""}</p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ລາຍການທີ່ມີ stock</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{fmt(h.in_stock_items)}</p></div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ມູນຄ່າ stock</p><p className="mt-2 text-2xl font-bold text-teal-600 dark:text-teal-400">{fmt(h.stock_value)}</p></div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຄ້າງດົນ (ບໍ່ຂາຍ 90 ວັນ)</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{fmt(h.dead_items)}</p></div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ມູນຄ່າຈົມ</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{fmt(h.dead_value)}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ລາຍການທີ່ມີ stock</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{fmt(h.in_stock_items)}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ມູນຄ່າ stock</p><p className="mt-2 text-2xl font-bold text-teal-600 dark:text-teal-400">{fmt(h.stock_value)}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຄ້າງດົນ (ບໍ່ຂາຍ 90 ວັນ)</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{fmt(h.dead_items)}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ມູນຄ່າຈົມ</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{fmt(h.dead_value)}</p></div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 rounded-xl glass p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-bold text-slate-900 dark:text-white">ການແຈກຢາຍອາຍຸ stock</h2>
         <div className="mt-4 space-y-2">
           {buckets.map((b) => (
@@ -62,7 +62,7 @@ export default async function StockHealthPage({ searchParams }: { searchParams: 
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ສິນຄ້າຄ້າງດົນ (ມູນຄ່າສູງສຸດ) · {dead.length}</h2></div>
         {dead.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີສິນຄ້າຄ້າງດົນ 🎉</p> : (
           <div className="overflow-x-auto">

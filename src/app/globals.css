@@ -1,34 +1,111 @@
 @import "tailwindcss";
 
+/*
+ * TMS design language (tms.odienmall.com), ported to PMS.
+ * Light + dark share the same brand palette; dark follows the system
+ * preference (the existing pages rely on the `dark:` media-query variant,
+ * so the theme keeps that strategy).
+ *
+ * The `teal-*` scale is deliberately remapped to TMS's blue/navy brand ramp:
+ * ~300 existing `teal-*` utilities across the pages recolor to the brand in
+ * one place instead of being hand-edited file by file.
+ */
 :root {
-  --background: #f5f7fb;
-  --foreground: #1e293b;
+  --background: #f5f9fd;
+  --foreground: #0b2338;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --border: #e2e8f0;
-  --accent: #0f9f92;
+  --surface-muted: #f1f6fc;
+  --border: #d9e6f2;
+
+  /* TMS brand */
+  --brand-navy: #003260;
+  --brand-blue: #2c6fb6;
+  --brand-orange: #f6921e;
+  --brand-sky: #4bc7ef;
+  --brand-yellow: #ffd071;
+  --accent: var(--brand-blue);
+
+  /* Warm mesh gradient behind the whole app. */
+  --mesh-gradient: linear-gradient(180deg, #f5f9fd 0%, #eaf3fb 54%, #fdf6ec 100%);
+
+  /* Frosted-glass surfaces. */
+  --glass-bg: #ffffffd1;
+  --glass-bg-heavy: #fffffff0;
+  --glass-border: #0032601a;
+  --glass-border-subtle: #0032601f;
+  --glass-shadow: 0 18px 40px -24px rgb(0 50 96 / 0.35);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-noto-lao), "Noto Sans Lao", "Noto Sans Lao UI", "Phetsarath OT", ui-sans-serif, system-ui, sans-serif;
+
+
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-sky: var(--brand-sky);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-glass-border: var(--glass-border);
+
+  /* Remap the built-in teal ramp onto the TMS blue/navy brand. */
+  --color-teal-50: #eff6fc;
+  --color-teal-100: #dbeaf7;
+  --color-teal-200: #bcd6ef;
+  --color-teal-300: #8fbae2;
+  --color-teal-400: #5b96cf;
+  --color-teal-500: #2c6fb6;
+  --color-teal-600: #245c9c;
+  --color-teal-700: #1d4a7f;
+  --color-teal-800: #163a63;
+  --color-teal-900: #003260;
+  --color-teal-950: #041f3a;
+
+  --font-sans: var(--font-brand-sans), var(--font-noto-lao), "Noto Sans Lao", "Noto Sans Lao UI", "Phetsarath OT", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #04182a;
+    --foreground: #e4eef7;
+    --surface: #062338;
+    --surface-muted: #072b45;
+    --border: #0e3350;
+
+    --mesh-gradient: linear-gradient(180deg, #04182a 0%, #062338 58%, #072b45 100%);
+
+    --glass-bg: #062338c7;
+    --glass-bg-heavy: #062338f0;
+    --glass-border: #e0f0fa1a;
+    --glass-border-subtle: #e0f0fa1f;
+    --glass-shadow: 0 18px 44px -22px rgb(0 0 0 / 0.6);
   }
 }
 
 body {
-  background: var(--background);
+  background: var(--mesh-gradient);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+/* Frosted-glass surface, matching TMS cards, headers and panels. */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-heavy {
+  background: var(--glass-bg-heavy);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
 }
 
 /* Shared density and surface rules for every management screen. */
@@ -65,8 +142,8 @@ table tbody td {
 .text-\[9px\] { font-size: 0.5625rem; }
 
 ::selection {
-  background: #ccfbf1;
-  color: #134e4a;
+  background: #cfe2f5;
+  color: #003260;
 }
 
 button,
@@ -84,7 +161,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [role="button"]:focus-visible {
-  outline: 3px solid rgb(20 184 166 / 0.28);
+  outline: 3px solid rgb(44 111 182 / 0.32);
   outline-offset: 2px;
 }
 
@@ -95,13 +172,13 @@ table tbody tr {
 
 @media (hover: hover) {
   table tbody tr:hover {
-    background-color: rgb(240 253 250 / 0.78);
+    background-color: rgb(239 246 252 / 0.85);
   }
 }
 
 @media (hover: hover) and (prefers-color-scheme: dark) {
   table tbody tr:hover {
-    background-color: rgb(30 41 59 / 0.7);
+    background-color: rgb(7 43 69 / 0.7);
   }
 }
 

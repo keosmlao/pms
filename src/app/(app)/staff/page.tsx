@@ -28,7 +28,7 @@ export default async function StaffPage() {
             ກຳນົດພະນັກງານພະແນກພະລິດຕະພັນ ຮັບຜິດຊອບກຸ່ມສິນຄ້າ (ກຸ່ມຫຼັກ / ກຸ່ມຍ່ອຍ)
           </p>
         </div>
-        <div className="inline-flex w-fit items-center gap-4 rounded-lg border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="inline-flex w-fit items-center gap-4 rounded-lg glass px-4 py-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="text-center">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">ພະນັກງານ</p>
             <p className="text-lg font-bold text-slate-950 dark:text-white">{staff.length}</p>

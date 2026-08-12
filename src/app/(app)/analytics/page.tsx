@@ -21,7 +21,7 @@ export default async function AnalyticsPage() {
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">ວິເຄາະການຂາຍ</h1>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ຂາຍດີສຸດ 90 ວັນ ແລະ ເດືອນທີ່ stock ພຽງພໍ {isOwner ? "· ສະເພາະກຸ່ມທ່ານ" : ""}</p>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-5 overflow-hidden rounded-xl glass shadow-sm">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ຂາຍດີສຸດ (90 ວັນ) · {top.length}</h2></div>
         {top.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ຍັງບໍ່ມີຂໍ້ມູນຂາຍ</p> : (
           <div className="overflow-x-auto">

@@ -34,7 +34,7 @@ export default function SpareImportForm() {
           name="data"
           rows={10}
           placeholder={"140101-2467  ຊື່ອາໄຫຼ່... AS-09CR4RYRCB00C AS-12CR4RGCB01 AS-18CR4RXSCB00\n140101-2576  ...  AS-12TR4RYRCA05 AS-09TR4RYRCA00"}
-          className="mt-2 w-full rounded-xl border border-slate-200 bg-white p-3 font-mono text-xs text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="mt-2 w-full rounded-xl glass p-3 font-mono text-xs text-slate-900 outline-none transition focus:border-teal-400 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         />
         <p className="mt-1 text-[11px] text-slate-400">
           ແຕ່ລະແຖວ: ລະຫັດອາໄຫຼ່ (000000-0000) + ລຸ້ນ AS-xxx ຫຼາຍລຸ້ນ. ຂ້າມ [SET] ແລະ MOCKUP ອັດຕະໂນມັດ.

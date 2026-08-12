@@ -39,7 +39,7 @@ export default function AddToPlanButton({ code, suggested }: { code: string; sug
         onChange={(e) => setQty(e.target.value)}
         disabled={!!state.success}
         aria-label="ຈຳນວນສັ່ງ"
-        className="w-16 rounded-md border border-slate-200 bg-white px-2 py-1 text-right text-xs text-slate-900 outline-none focus:border-teal-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+        className="w-16 rounded-md glass px-2 py-1 text-right text-xs text-slate-900 outline-none focus:border-teal-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
       />
       <Submit added={!!state.success} />
     </form>

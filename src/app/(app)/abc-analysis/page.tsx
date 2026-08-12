@@ -69,13 +69,13 @@ export default async function AbcAnalysisPage({
         })}
       </div>
 
-      <div className="mt-6 inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs dark:border-slate-700 dark:bg-slate-900">
+      <div className="mt-6 inline-flex rounded-lg glass p-0.5 text-xs dark:border-slate-700 dark:bg-slate-900">
         {["A", "B", "C"].map((k) => (
           <Link key={k} href={`/abc-analysis?klass=${k}`} className={`rounded-md px-4 py-1.5 font-semibold ${klass === k ? "bg-teal-600 text-white" : "text-slate-600 dark:text-slate-300"}`}>Class {k} · {fmt(byClass[k]?.items ?? 0)}</Link>
         ))}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white">ສິນຄ້າ Class {klass} · ໜ້າ {page}</h2>
         </div>

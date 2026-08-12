@@ -35,12 +35,12 @@ export default async function DefectsPage({ searchParams }: { searchParams: Prom
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ສິນຄ້າຕຳໜິ ແຍກຕາມຍີ່ຫໍ້ {isOwner ? "· ສະເພາະກຸ່ມທ່ານ" : ""}</p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຕຳໜິທັງໝົດ</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{total.toLocaleString("en-US")}</p></div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຍັງບໍ່ແກ້ໄຂ</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{totalOpen.toLocaleString("en-US")}</p></div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຍີ່ຫໍ້ທີ່ມີຕຳໜິ</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{byBrand.length}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຕຳໜິທັງໝົດ</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{total.toLocaleString("en-US")}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຍັງບໍ່ແກ້ໄຂ</p><p className="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{totalOpen.toLocaleString("en-US")}</p></div>
+        <div className="rounded-xl glass p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs text-slate-500">ຍີ່ຫໍ້ທີ່ມີຕຳໜິ</p><p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{byBrand.length}</p></div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 rounded-xl glass p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-bold text-slate-900 dark:text-white">ຕຳໜິ ຕໍ່ຍີ່ຫໍ້</h2>
         <div className="mt-4 space-y-2">
           {byBrand.map((b) => (
@@ -53,7 +53,7 @@ export default async function DefectsPage({ searchParams }: { searchParams: Prom
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl glass shadow-sm">
         <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-800"><h2 className="text-sm font-bold text-slate-900 dark:text-white">ຕຳໜິລ້າສຸດ · {recent.length}</h2></div>
         {recent.length === 0 ? <p className="px-5 py-10 text-center text-sm text-slate-400">ບໍ່ມີຕຳໜິ</p> : (
           <div className="overflow-x-auto">
