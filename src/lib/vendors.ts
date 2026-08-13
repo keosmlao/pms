@@ -32,7 +32,7 @@ export async function listVendors(opts: { q?: string; limit?: number; offset?: n
             COALESCE(s.telephone,'') AS tel,
             COALESCE(s.province,'') AS province,
             COALESCE(s.ap_type,'') AS ap_type,
-            COALESCE(s.status,'')::text AS status,
+            COALESCE(s.status::text,'') AS status,
             COALESCE(ap.outstanding,0)::text AS ap_outstanding,
             COALESCE(ap.overdue,0)::int AS overdue
        FROM ap_supplier s
@@ -107,7 +107,7 @@ export async function getVendor(code: string): Promise<{
             COALESCE(s.amper,'') AS amper, COALESCE(s.province,'') AS province,
             COALESCE(s.telephone,'') AS tel, COALESCE(s.fax,'') AS fax,
             COALESCE(s.email,'') AS email, COALESCE(s.website,'') AS website,
-            COALESCE(s.ap_type,'') AS ap_type, COALESCE(s.status,'')::text AS status,
+            COALESCE(s.ap_type,'') AS ap_type, COALESCE(s.status::text,'') AS status,
             COALESCE(s.remark,'') AS remark
        FROM ap_supplier s WHERE s.code = $1`,
     [code],
@@ -129,7 +129,8 @@ export async function getVendor(code: string): Promise<{
               COALESCE(overdue_day,0)::int AS overdue_day, COALESCE(doc_type_name,'') AS doc_type_name
          FROM odg_ap_balance
         WHERE ap_code = $1 AND COALESCE(balance_amount,0) > 0
-        ORDER BY due_date NULLS LAST
+        -- due_date is text in DD-MM-YYYY; parse it so the sort is chronological
+        ORDER BY to_date(NULLIF(due_date,''),'DD-MM-YYYY') NULLS LAST
         LIMIT 50`,
       [code],
     ),
