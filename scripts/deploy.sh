@@ -13,8 +13,10 @@ SERVICE="${DEPLOY_SERVICE:-pms}"
 PORT="${DEPLOY_PORT:-3100}"
 
 echo "── ດຶງໂຄດ · ບິວ · restart ($SERVICE) ──"
+# `-t` ຂໍ terminal ໃຫ້ sudo ຖາມລະຫັດໄດ້ — ບໍ່ມີແລ້ວຈະລົ້ມທີ່ systemctl restart
+# ("sudo: a terminal is required to read the password").
 # shellcheck disable=SC2029  # ຕັ້ງໃຈໃຫ້ຂະຫຍາຍຢູ່ຝັ່ງນີ້
-ssh "$HOST" "set -e
+ssh -t "$HOST" "set -e
   cd $DIR
   git pull
   npm ci --omit=dev --no-audit --no-fund || npm install
