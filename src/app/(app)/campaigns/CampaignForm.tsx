@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ClientSelect from "@/components/ClientSelect";
 import { saveCampaign } from "./actions";
-import type { CategoryOption, DeptOption, EmployeeOption } from "@/lib/campaigns";
+import type { CategoryOption, ChannelOption, DeptOption, EmployeeOption } from "@/lib/campaigns";
 
 type TierDraft = { pct: string; target_qty: string; bonus_amount: string };
 type LineDraft = {
@@ -29,6 +29,7 @@ export type CampaignDraft = {
   exclude_gifts: boolean;
   split_rule: string;
   fallback_employee_code: string;
+  channel_codes: string[];
   lines: LineDraft[];
 };
 
@@ -58,17 +59,20 @@ export default function CampaignForm({
   categories,
   departments,
   employees,
+  channels,
 }: {
   initial: CampaignDraft;
   categories: CategoryOption[];
   departments: DeptOption[];
   employees: EmployeeOption[];
+  channels: ChannelOption[];
 }) {
   const [draft, setDraft] = useState<CampaignDraft>(initial);
 
   const catOptions = categories.map((c) => ({ value: c.code, label: `${c.name} (${c.code})` }));
   const deptOptions = departments.map((d) => ({ value: d.code, label: `${d.name} · ${d.bu_name} (${d.code})` }));
   const empOptions = employees.map((e) => ({ value: e.code, label: `${e.name} (${e.code})` }));
+  const chanOptions = channels.map((c) => ({ value: c.code, label: `${c.name} (${c.code})` }));
 
   function setLine(i: number, patch: Partial<LineDraft>) {
     setDraft((d) => ({ ...d, lines: d.lines.map((l, k) => (k === i ? { ...l, ...patch } : l)) }));
@@ -96,6 +100,7 @@ export default function CampaignForm({
     exclude_gifts: draft.exclude_gifts,
     split_rule: draft.split_rule,
     fallback_employee_code: draft.fallback_employee_code,
+    channel_codes: draft.channel_codes,
     lines: draft.lines.map((l) => ({
       name: l.name,
       categories: l.categories,
@@ -179,6 +184,19 @@ export default function CampaignForm({
               )}
             </div>
           ) : null}
+          <div className="sm:col-span-2">
+            <label className={labelCls}>ຊ່ອງທາງລູກຄ້າທີ່ນັບເຂົ້າ (ວ່າງ = ທຸກຊ່ອງທາງ)</label>
+            <div className="mt-1">
+              <ClientSelect
+                isMulti
+                options={chanOptions}
+                value={chanOptions.filter((o) => draft.channel_codes.includes(o.value))}
+                onChange={(vals) => setDraft({ ...draft, channel_codes: vals.map((v) => v.value) })}
+                placeholder="ເຊັ່ນ ຂາຍສົ່ງ…"
+                classNamePrefix="rs"
+              />
+            </div>
+          </div>
           <div className="sm:col-span-2">
             <label className={labelCls}>ຫົວໜ້າທີມ (ຮັບຍອດຂອງຄົນທີ່ຈັບຄູ່ຊື່ໃນບິນບໍ່ໄດ້)</label>
             <div className="mt-1">

@@ -62,3 +62,8 @@ alter table app_campaign add column if not exists split_rule text not null defau
 -- 2026-08-22: ຄົນທີ່ຊື່ໃນບິນຈັບຄູ່ກັບ odg_employee ບໍ່ໄດ້ (ແລະ ບໍ່ມີ alias)
 -- ໃຫ້ຍອດ ແລະ ເງິນຂອງລາວ ຕົກເປັນຂອງ "ຫົວໜ້າທີມ" ຄົນນີ້ ແທນທີ່ຈະຫາຍໄປ.
 alter table app_campaign add column if not exists fallback_employee_code text not null default '';
+
+-- 2026-08-22: ນັບສະເພາະຊ່ອງທາງທີ່ກຳນົດ (ar_group ຜ່ານ odg_sale_detail.argroup_main)
+-- ວ່າງ = ທຸກຊ່ອງທາງ. ໂຄງການປັດຈຸບັນຕັ້ງເປັນ {102} = ຂາຍສົ່ງ ເທົ່ານັ້ນ ເພາະ
+-- ໃນພະແນກຂາຍສົ່ງເອງ ຍັງມີບິນ ໜ້າຮ້ານ/ໂຄງການ ປົນມາ (ພົບ 6 ແຖວ ໄຕມາດນີ້).
+alter table app_campaign add column if not exists channel_codes text[] not null default '{}';

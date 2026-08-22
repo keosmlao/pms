@@ -55,6 +55,8 @@ export type Campaign = {
   split_rule: string;
   /** ຫົວໜ້າທີມທີ່ຮັບຍອດຂອງຄົນທີ່ຈັບຄູ່ຊື່ບໍ່ໄດ້ */
   fallback_employee_code: string;
+  /** ຊ່ອງທາງລູກຄ້າທີ່ນັບເຂົ້າ (ar_group) — ວ່າງ = ທຸກຊ່ອງທາງ */
+  channel_codes: string[];
 };
 
 // ລະຫັດພະແນກ → ຊື່ ສຳລັບສະແດງຜົນ
@@ -114,6 +116,13 @@ function giftClause(excludeGifts: boolean): string {
   return excludeGifts ? GIFT_FILTER : "";
 }
 
+// ນັບສະເພາະຊ່ອງທາງທີ່ກຳນົດ — ໃນພະແນກຂາຍສົ່ງເອງ ຍັງມີບິນ ໜ້າຮ້ານ/ໂຄງການ ປົນມາ.
+// ຄ່າແມ່ນລະຫັດ ar_group (101 ໜ້າຮ້ານ · 102 ຂາຍສົ່ງ · 103 ໂຄງການ …).
+function channelClause(codes: string[], nextParam: number) {
+  if (!codes.length) return { sql: "", params: [] as unknown[] };
+  return { sql: `AND s.argroup_main = ANY($${nextParam})`, params: [codes] };
+}
+
 function num(v: string | number | null | undefined): number {
   const n = Number(v ?? 0);
   return Number.isFinite(n) ? n : 0;
@@ -140,7 +149,8 @@ export async function listCampaigns(): Promise<Campaign[]> {
   const { rows } = await pool.query<Campaign>(
     `SELECT id, name, description, date_from::text, date_to::text,
             scope_kind, scope_codes, reward_currency, status, note, created_by,
-            exclude_gifts, split_rule, COALESCE(fallback_employee_code,'') AS fallback_employee_code
+            exclude_gifts, split_rule, COALESCE(fallback_employee_code,'') AS fallback_employee_code,
+            channel_codes
        FROM app_campaign
       ORDER BY date_from DESC, id DESC`,
   );
@@ -151,7 +161,8 @@ export async function getCampaign(id: number): Promise<Campaign | null> {
   const { rows } = await pool.query<Campaign>(
     `SELECT id, name, description, date_from::text, date_to::text,
             scope_kind, scope_codes, reward_currency, status, note, created_by,
-            exclude_gifts, split_rule, COALESCE(fallback_employee_code,'') AS fallback_employee_code
+            exclude_gifts, split_rule, COALESCE(fallback_employee_code,'') AS fallback_employee_code,
+            channel_codes
        FROM app_campaign WHERE id = $1`,
     [id],
   );
@@ -184,6 +195,7 @@ export async function getCampaignWithLines(id: number): Promise<CampaignWithLine
   );
 
   const scope = scopeClause(campaign.scope_kind, campaign.scope_codes, 4);
+  const chan = channelClause(campaign.channel_codes, 4 + scope.params.length);
   const { rows: actualRows } = await pool.query<{ line_id: number; actual: string; unit_bonus_qty: string }>(
     `SELECT l.id AS line_id,
             COALESCE(SUM(s.qty), 0)::text AS actual,
@@ -198,9 +210,10 @@ export async function getCampaignWithLines(id: number): Promise<CampaignWithLine
              AND (CARDINALITY(l.brands) = 0 OR UPPER(TRIM(s.item_brand)) = ANY(l.brands))
              ${giftClause(campaign.exclude_gifts)}
              ${scope.sql}
+             ${chan.sql}
       WHERE l.campaign_id = $1
       GROUP BY l.id`,
-    [id, campaign.date_from, campaign.date_to, ...scope.params],
+    [id, campaign.date_from, campaign.date_to, ...scope.params, ...chan.params],
   );
   const actuals = new Map(actualRows.map((r) => [r.line_id, r]));
 
@@ -272,6 +285,7 @@ export async function listCampaignSummaries(): Promise<CampaignSummary[]> {
     exclude_gifts: c.exclude_gifts,
     split_rule: c.split_rule,
     fallback_employee_code: c.fallback_employee_code,
+    channel_codes: c.channel_codes,
     lineCount: c.lines.length,
     totalBonus: c.totalBonus,
     minPct: c.lines.length ? Math.min(...c.lines.map((l) => l.pct)) : 0,
@@ -300,6 +314,7 @@ export async function getCampaignBySalesperson(id: number): Promise<SalesRow[]> 
   const campaign = await getCampaignWithLines(id);
   if (!campaign) return [];
   const scope = scopeClause(campaign.scope_kind, campaign.scope_codes, 4);
+  const chan = channelClause(campaign.channel_codes, 4 + scope.params.length);
   const gift = giftClause(campaign.exclude_gifts);
 
   // ຍອດຕໍ່ (ຄົນ × ໝວດ) — ພື້ນຖານຂອງການແບ່ງເງິນ
@@ -326,11 +341,12 @@ export async function getCampaignBySalesperson(id: number): Promise<SalesRow[]> 
         AND (CARDINALITY(l.brands) = 0 OR UPPER(TRIM(s.item_brand)) = ANY(l.brands))
         ${gift}
         ${scope.sql}
+        ${chan.sql}
        LEFT JOIN app_incentive_sale_alias al ON TRIM(al.salename) = TRIM(s.salename)
        LEFT JOIN odg_employee em ON TRIM(em.fullname_lo) = TRIM(s.salename)
       WHERE l.campaign_id = $1
       GROUP BY 1, l.id`,
-    [id, campaign.date_from, campaign.date_to, ...scope.params],
+    [id, campaign.date_from, campaign.date_to, ...scope.params, ...chan.params],
   );
 
   // ⚠️ ນັບບິນຕ່າງຫາກ — ບິນໜຶ່ງອາດມີຫຼາຍໝວດ ຈຶ່ງບວກຕໍ່ໝວດຈະນັບຊ້ຳ
@@ -347,8 +363,9 @@ export async function getCampaignBySalesperson(id: number): Promise<SalesRow[]> 
         )
         ${gift}
         ${scope.sql}
+        ${chan.sql}
       GROUP BY 1`,
-    [id, campaign.date_from, campaign.date_to, ...scope.params],
+    [id, campaign.date_from, campaign.date_to, ...scope.params, ...chan.params],
   );
   const bills = new Map(billRows.map((r) => [r.salename, r.bills]));
 
@@ -413,6 +430,7 @@ export async function getCampaignByDepartment(id: number): Promise<DeptRow[]> {
   const campaign = await getCampaign(id);
   if (!campaign) return [];
   const scope = scopeClause(campaign.scope_kind, campaign.scope_codes, 4);
+  const chan = channelClause(campaign.channel_codes, 4 + scope.params.length);
   const { rows } = await pool.query<DeptRow>(
     `SELECT COALESCE(NULLIF(TRIM(s.department_code), ''), '-') AS department_code,
             COALESCE(NULLIF(TRIM(s.department_name), ''), '(ບໍ່ລະບຸ)') AS department_name,
@@ -428,10 +446,11 @@ export async function getCampaignByDepartment(id: number): Promise<DeptRow[]> {
         )
         ${giftClause(campaign.exclude_gifts)}
         ${scope.sql}
+        ${chan.sql}
       GROUP BY 1, 2, 3
       HAVING SUM(s.qty) <> 0
       ORDER BY SUM(s.qty) DESC`,
-    [id, campaign.date_from, campaign.date_to, ...scope.params],
+    [id, campaign.date_from, campaign.date_to, ...scope.params, ...chan.params],
   );
   return rows;
 }
@@ -443,6 +462,7 @@ export async function getCampaignByMonth(id: number): Promise<MonthRow[]> {
   const campaign = await getCampaign(id);
   if (!campaign) return [];
   const scope = scopeClause(campaign.scope_kind, campaign.scope_codes, 4);
+  const chan = channelClause(campaign.channel_codes, 4 + scope.params.length);
   const { rows } = await pool.query<MonthRow>(
     `SELECT TO_CHAR(s.doc_date, 'YYYY-MM') AS ym, SUM(s.qty)::text AS units
        FROM odg_sale_detail s
@@ -455,8 +475,9 @@ export async function getCampaignByMonth(id: number): Promise<MonthRow[]> {
         )
         ${giftClause(campaign.exclude_gifts)}
         ${scope.sql}
+        ${chan.sql}
       GROUP BY 1 ORDER BY 1`,
-    [id, campaign.date_from, campaign.date_to, ...scope.params],
+    [id, campaign.date_from, campaign.date_to, ...scope.params, ...chan.params],
   );
   return rows;
 }
@@ -475,6 +496,17 @@ export async function listCategoryOptions(): Promise<CategoryOption[]> {
         AND s.doc_date >= CURRENT_DATE - INTERVAL '2 years'
       GROUP BY s.item_category
       ORDER BY 2`,
+  );
+  return rows;
+}
+
+// Customer-channel picker (ar_group) — 101 ໜ້າຮ້ານ · 102 ຂາຍສົ່ງ · 103 ໂຄງການ …
+export type ChannelOption = { code: string; name: string };
+
+export async function listChannelOptions(): Promise<ChannelOption[]> {
+  const { rows } = await pool.query<ChannelOption>(
+    `SELECT code, COALESCE(NULLIF(TRIM(name_1), ''), code) AS name
+       FROM ar_group WHERE code ~ '^1[0-9]{2}$' ORDER BY code`,
   );
   return rows;
 }

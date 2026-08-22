@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { PageHeader, PageShell } from "@/components/PageShell";
-import { getCampaignWithLines, listCategoryOptions, listDepartmentOptions, listEmployeeOptions } from "@/lib/campaigns";
+import { getCampaignWithLines, listCategoryOptions, listChannelOptions, listDepartmentOptions, listEmployeeOptions } from "@/lib/campaigns";
 import { getIsAdmin } from "@/lib/products";
 import { getCurrentUser } from "@/lib/session";
 import CampaignForm, { type CampaignDraft } from "../../CampaignForm";
@@ -15,10 +15,11 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
   const campaign = await getCampaignWithLines(Number(id));
   if (!campaign) notFound();
 
-  const [categories, departments, employees] = await Promise.all([
+  const [categories, departments, employees, channels] = await Promise.all([
     listCategoryOptions(),
     listDepartmentOptions(),
     listEmployeeOptions(),
+    listChannelOptions(),
   ]);
 
   const initial: CampaignDraft = {
@@ -35,6 +36,7 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
     exclude_gifts: campaign.exclude_gifts,
     split_rule: campaign.split_rule,
     fallback_employee_code: campaign.fallback_employee_code,
+    channel_codes: campaign.channel_codes,
     lines: campaign.lines.map((l) => ({
       name: l.name,
       categories: l.categories,
@@ -64,7 +66,7 @@ export default async function EditCampaignPage({ params }: { params: Promise<{ i
           </form>
         }
       />
-      <CampaignForm initial={initial} categories={categories} departments={departments} employees={employees} />
+      <CampaignForm initial={initial} categories={categories} departments={departments} employees={employees} channels={channels} />
     </PageShell>
   );
 }

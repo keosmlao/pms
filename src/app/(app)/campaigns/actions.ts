@@ -29,6 +29,7 @@ type CampaignInput = {
   exclude_gifts: boolean;
   split_rule: string;
   fallback_employee_code: string;
+  channel_codes: string[];
   lines: LineInput[];
 };
 
@@ -72,6 +73,7 @@ export async function saveCampaign(formData: FormData): Promise<void> {
   const scopeKind = ["all", "department", "bu"].includes(input.scope_kind) ? input.scope_kind : "all";
   const splitRule = SPLIT_RULES.includes(input.split_rule) ? input.split_rule : "prorata";
   const leader = String(input.fallback_employee_code ?? "").trim().slice(0, 20);
+  const channels = cleanList(input.channel_codes);
   const scopeCodes = scopeKind === "all" ? [] : cleanList(input.scope_codes);
   const lines = (Array.isArray(input.lines) ? input.lines : [])
     .map((l) => ({
@@ -98,12 +100,12 @@ export async function saveCampaign(formData: FormData): Promise<void> {
             SET name = $2, description = NULLIF($3,''), date_from = $4, date_to = $5,
                 scope_kind = $6, scope_codes = $7, reward_currency = $8, status = $9,
                 note = NULLIF($10,''), exclude_gifts = $11, split_rule = $12,
-                fallback_employee_code = $13, updated_at = now()
+                fallback_employee_code = $13, channel_codes = $14, updated_at = now()
           WHERE id = $1`,
         [id, name.slice(0, 200), String(input.description ?? "").trim().slice(0, 1000), from, to,
          scopeKind, scopeCodes, String(input.reward_currency ?? "THB").trim().slice(0, 10) || "THB",
          String(input.status ?? "active").trim().slice(0, 20) || "active",
-         String(input.note ?? "").trim().slice(0, 1000), input.exclude_gifts !== false, splitRule, leader],
+         String(input.note ?? "").trim().slice(0, 1000), input.exclude_gifts !== false, splitRule, leader, channels],
       );
       if (!rowCount) return 0;
       await client.query(`DELETE FROM app_campaign_line WHERE campaign_id = $1`, [id]);
@@ -111,14 +113,14 @@ export async function saveCampaign(formData: FormData): Promise<void> {
       const { rows } = await client.query<{ id: number }>(
         `INSERT INTO app_campaign (name, description, date_from, date_to, scope_kind, scope_codes,
                                    reward_currency, status, note, created_by, exclude_gifts, split_rule,
-                                   fallback_employee_code)
-         VALUES ($1, NULLIF($2,''), $3, $4, $5, $6, $7, $8, NULLIF($9,''), $10, $11, $12, $13)
+                                   fallback_employee_code, channel_codes)
+         VALUES ($1, NULLIF($2,''), $3, $4, $5, $6, $7, $8, NULLIF($9,''), $10, $11, $12, $13, $14)
          RETURNING id`,
         [name.slice(0, 200), String(input.description ?? "").trim().slice(0, 1000), from, to,
          scopeKind, scopeCodes, String(input.reward_currency ?? "THB").trim().slice(0, 10) || "THB",
          String(input.status ?? "active").trim().slice(0, 20) || "active",
          String(input.note ?? "").trim().slice(0, 1000), user.employeeCode,
-         input.exclude_gifts !== false, splitRule, leader],
+         input.exclude_gifts !== false, splitRule, leader, channels],
       );
       id = rows[0].id;
     }
