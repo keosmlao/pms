@@ -58,6 +58,7 @@ const NAV_GROUPS = [
       // Admins plus anyone assigned a BU / channel / product group — the page
       // scopes itself to whatever that person is responsible for.
       { href: "/loyalty", label: "ບໍລິຫານແຕ້ມສະສົມ", icon: StarIcon, adminOnly: true, orResponsible: true },
+      { href: "/campaigns", label: "ໂຄງການສົ່ງເສີມການຂາຍ", icon: AwardIcon, adminOnly: false },
     ],
   },
   {
