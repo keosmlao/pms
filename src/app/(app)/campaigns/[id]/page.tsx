@@ -88,7 +88,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
       />
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="ໂບນັດລວມປັດຈຸບັນ" value={`${fmt(campaign.totalBonus)} ${cur}`} valueClassName="text-emerald-600 dark:text-emerald-400" note="ຕາມຂັ້ນທີ່ບັນລຸແລ້ວ + ໂບນັດຕໍ່ຕົວ" />
+        <MetricCard label="ລາຍຮັບພິເສດລວມປັດຈຸບັນ" value={`${fmt(campaign.totalBonus)} ${cur}`} valueClassName="text-emerald-600 dark:text-emerald-400" note="ຕາມຂັ້ນທີ່ບັນລຸແລ້ວ + ລາຍຮັບຕໍ່ຕົວ" />
         <MetricCard label="ໝວດໃນໂຄງການ" value={campaign.lines.length} note={`ບັນລຸເປົ້າ 100% ແລ້ວ ${campaign.lines.filter((l) => l.pct >= 100).length} ໝວດ`} />
         <MetricCard label="ເວລາທີ່ຜ່ານໄປ" value={`${campaign.daysElapsed}/${campaign.daysTotal} ວັນ`} note={`${fmt(paceRatio * 100, 0)}% ຂອງໄລຍະໂຄງການ`} />
         <MetricCard label="ພະນັກງານທີ່ມີສ່ວນຮ່ວມ" value={bySales.length} note={`${byDept.length} ພະແນກ`} />
@@ -135,7 +135,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                         <th className="py-2 font-semibold">ຂັ້ນ</th>
                         <th className="py-2 text-right font-semibold">ເປົ້າ (ໜ່ວຍ)</th>
                         <th className="py-2 text-right font-semibold">% ຈິງ</th>
-                        <th className="py-2 text-right font-semibold">ໂບນັດ</th>
+                        <th className="py-2 text-right font-semibold">ລາຍຮັບພິເສດ</th>
                         <th className="py-2 text-right font-semibold">ສະຖານະ</th>
                       </tr>
                     </thead>
@@ -180,7 +180,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
 
                 <div className="space-y-2 rounded-lg bg-slate-50 p-3 text-xs dark:bg-slate-900/40">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">ໂບນັດຕາມຂັ້ນ</span>
+                    <span className="text-slate-500">ລາຍຮັບຕາມຂັ້ນ</span>
                     <span className="font-semibold text-slate-900 dark:text-white">{fmt(line.tierBonus)} {cur}</span>
                   </div>
                   {Number(line.unit_bonus_per_unit) > 0 ? (
@@ -259,7 +259,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
         {/* ---- ພະນັກງານ ---- */}
         <div className="glass overflow-hidden rounded-xl">
           <p className="px-5 pt-5 text-sm font-bold text-slate-900 dark:text-white">ອັນດັບພະນັກງານຂາຍ</p>
-          <p className="px-5 pt-1 text-[11px] text-slate-400">ເງິນ = ສ່ວນແບ່ງຂອງແຕ່ລະຄົນ ({SPLIT_LABEL[campaign.split_rule] ?? campaign.split_rule}) + ໂບນັດຕໍ່ຕົວຂອງຕົນເອງ</p>
+          <p className="px-5 pt-1 text-[11px] text-slate-400">ເງິນ = ສ່ວນແບ່ງຂອງແຕ່ລະຄົນ ({SPLIT_LABEL[campaign.split_rule] ?? campaign.split_rule}) + ລາຍຮັບຕໍ່ຕົວຂອງຕົນເອງ</p>
           <div className="mt-3 max-h-[420px] overflow-auto">
             <table className="w-full text-xs">
               <thead className="sticky top-0">

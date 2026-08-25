@@ -264,16 +264,16 @@ export default function CampaignForm({
               </div>
             </div>
             <div>
-              <label className={labelCls}>ແບຣນທີ່ໄດ້ໂບນັດຕໍ່ຕົວ</label>
+              <label className={labelCls}>ແບຣນທີ່ໄດ້ລາຍຮັບຕໍ່ຕົວ</label>
               <input className={`${inputCls} mt-1`} value={line.unit_bonus_brands} onChange={(e) => setLine(li, { unit_bonus_brands: e.target.value })} placeholder="MIDEA" />
             </div>
             <div>
-              <label className={labelCls}>ໂບນັດຕໍ່ຕົວ</label>
+              <label className={labelCls}>ລາຍຮັບຕໍ່ຕົວ</label>
               <input type="number" min="0" step="0.01" className={`${inputCls} mt-1`} value={line.unit_bonus_per_unit} onChange={(e) => setLine(li, { unit_bonus_per_unit: e.target.value })} />
             </div>
           </div>
 
-          <p className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">ຂັ້ນເປົ້າ ແລະ ໂບນັດ</p>
+          <p className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">ຂັ້ນເປົ້າ ແລະ ລາຍຮັບພິເສດ</p>
           <div className="mt-2 space-y-2">
             {line.tiers.map((t, ti) => (
               <div key={ti} className="grid grid-cols-[70px_1fr_1fr_auto] items-end gap-2">
@@ -286,7 +286,7 @@ export default function CampaignForm({
                   <input type="number" min="0" className={`${inputCls} mt-1`} value={t.target_qty} onChange={(e) => setTier(li, ti, { target_qty: e.target.value })} />
                 </div>
                 <div>
-                  <label className={labelCls}>ໂບນັດ</label>
+                  <label className={labelCls}>ລາຍຮັບພິເສດ</label>
                   <input type="number" min="0" className={`${inputCls} mt-1`} value={t.bonus_amount} onChange={(e) => setTier(li, ti, { bonus_amount: e.target.value })} />
                 </div>
                 <button

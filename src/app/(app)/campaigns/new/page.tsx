@@ -39,7 +39,7 @@ export default async function NewCampaignPage() {
 
   return (
     <PageShell>
-      <PageHeader section="ໂຄງການສົ່ງເສີມການຂາຍ" title="ສ້າງໂຄງການໃໝ່" description="ກຳນົດໄລຍະເວລາ, ໝວດສິນຄ້າທີ່ນັບເຂົ້າເປົ້າ ແລະ ຂັ້ນໂບນັດ" />
+      <PageHeader section="ໂຄງການສົ່ງເສີມການຂາຍ" title="ສ້າງໂຄງການໃໝ່" description="ກຳນົດໄລຍະເວລາ, ໝວດສິນຄ້າທີ່ນັບເຂົ້າເປົ້າ ແລະ ຂັ້ນລາຍຮັບພິເສດ" />
       <CampaignForm initial={initial} categories={categories} departments={departments} employees={employees} channels={channels} />
     </PageShell>
   );

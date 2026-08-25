@@ -37,7 +37,7 @@ export default async function CampaignsPage() {
       <PageHeader
         section="ໂຄງການສົ່ງເສີມການຂາຍ"
         title="ໂຄງການສົ່ງເສີມການຂາຍ"
-        description="ຄວາມຄືບໜ້າຂອງແຕ່ລະໂຄງການ ທຽບກັບເປົ້າໜ່ວຍ ພ້ອມເງິນໂບນັດທີ່ຈະໄດ້ຮັບ · ຍອດຂາຍຈິງດຶງຈາກ odg_sale_detail (ຫັກຮັບຄືນແລ້ວ)"
+        description="ຄວາມຄືບໜ້າຂອງແຕ່ລະໂຄງການ ທຽບກັບເປົ້າໜ່ວຍ ພ້ອມເງິນລາຍຮັບພິເສດທີ່ຈະໄດ້ຮັບ · ຍອດຂາຍຈິງດຶງຈາກ odg_sale_detail (ຫັກຮັບຄືນແລ້ວ)"
         action={
           isAdmin ? (
             <Link
@@ -90,7 +90,7 @@ export default async function CampaignsPage() {
                     <p className={`text-2xl font-bold ${pctTone(c.minPct)}`}>{fmt(c.minPct, 1)}%</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">ໂບນັດປັດຈຸບັນ</p>
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400">ລາຍຮັບພິເສດປັດຈຸບັນ</p>
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
                       {fmt(c.totalBonus)}{" "}
                       <span className="text-xs font-medium text-slate-400">
